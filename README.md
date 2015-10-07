@@ -32,3 +32,10 @@ Agora é hora de compilar e instalar a biblioteca no sistema:
 $ make
 $ sudo make install
 ```
+
+Com a Allegro5 instalada, basta agora compilar o arquivo do projeto e executá-lo:
+
+```
+$ gcc -Wall johnny-the-game.c -o johnny-the-game `pkg-config --cflags --libs allegro-5.0 allegro_image-5.0`
+$ ./johnny-the-game
+```

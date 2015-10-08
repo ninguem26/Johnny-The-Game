@@ -15,8 +15,9 @@ ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
 
 int main(void){
     bool sair = false;
-    bool teclaDown[4] = {false, false, false, false};
-    int dir_x = 1, dir_y = 1, rot_y = 0;
+    bool teclaDown[3] = {false, false, false};
+    float dir_x = 10, dir_y = 160, rot_y = 0;
+    float velocidadeQueda = 3;
 
     if (!al_init()){
         fprintf(stderr, "Falha ao inicializar a Allegro.\n");
@@ -66,22 +67,18 @@ int main(void){
         if (evento.type == ALLEGRO_EVENT_KEY_DOWN){
           if(evento.keyboard.keycode == ALLEGRO_KEY_UP){
             teclaDown[0] = true;
-          }else if(evento.keyboard.keycode == ALLEGRO_KEY_DOWN){
-            teclaDown[1] = true;
           }else if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
-            teclaDown[2] = true;
+            teclaDown[1] = true;
           }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
-            teclaDown[3] = true;
+            teclaDown[2] = true;
           }
         }else if(evento.type == ALLEGRO_EVENT_KEY_UP){
           if(evento.keyboard.keycode == ALLEGRO_KEY_UP){
             teclaDown[0] = false;
-          }else if(evento.keyboard.keycode == ALLEGRO_KEY_DOWN){
-            teclaDown[1] = false;
           }else if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
-            teclaDown[2] = false;
+            teclaDown[1] = false;
           }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
-            teclaDown[3] = false;
+            teclaDown[2] = false;
           }
         }else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
             sair = true;
@@ -91,14 +88,18 @@ int main(void){
       if (teclaDown[0]){
           dir_y-=3;
       }
-      if (teclaDown[1]){
-          dir_y+=3;
+      if (dir_y < ALTURA_TELA - 68){
+          dir_y += velocidadeQueda;
+          velocidadeQueda+=0.2;
+      }else{
+        dir_y = ALTURA_TELA - 68;
+        velocidadeQueda = 3;
       }
-      if (teclaDown[2]){
+      if (teclaDown[1]){
           dir_x-=3;
           rot_y = 1;
       }
-      if (teclaDown[3]){
+      if (teclaDown[2]){
           dir_x+=3;
           rot_y = 0;
       }
@@ -108,6 +109,7 @@ int main(void){
     }
 
     al_destroy_display(janela);
+    al_destroy_bitmap(imagem);
     al_destroy_event_queue(fila_eventos);
 
     return 0;

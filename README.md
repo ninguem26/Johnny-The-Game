@@ -14,13 +14,7 @@ $ sudo apt-get install libpng-dev libcurl4-dev libfreetype6-dev  libjpeg-dev lib
 libpulse-dev libflac-dev libdumb1-dev
 ```
 
-Agora, instalando a Allegro5, é preciso descompactar o arquivo .tar.gz. Para isto, basta usar o comando:
-
-```
-$ tar -xvzf allegro-5.0.10.tar.gz
-```
-
-Cria-se, então, uma build da Allegro5 antes de compilar o binary source:
+Com as dependências instaladas, acessamos a pasta allegro-5.0.10 localizada na pasta libs e compilamos o binary source com o comando:
 
 ```
 $ cmake .. -DCMAKE_INSTALL_PREFIX=/usr

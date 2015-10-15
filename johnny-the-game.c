@@ -11,6 +11,7 @@ const int ALTURA_TELA = 480;
 
 ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
+ALLEGRO_TIMER *timer = NULL;
 
 struct SPRITE {
     float positionX, positionY, rotationY;
@@ -23,7 +24,10 @@ int main(void){
     bool sair = false;
     bool teclaDown[3] = {false, false, false};
     bool isGrounded = false, isFalling = false, isJumping = false;
+    bool redraw = true;
     int i;
+    int count = 0;
+    int FPS = 60;
 
     float jumpSpeed = 5, rightSpeed = 3, leftSpeed = 3;
 
@@ -75,6 +79,7 @@ int main(void){
         return false;
     }
 
+    timer = al_create_timer(1.0/FPS);
     fila_eventos = al_create_event_queue();
     if (!fila_eventos){
         fprintf(stderr, "Falha ao criar fila de eventos.\n");
@@ -84,8 +89,12 @@ int main(void){
 
     al_register_event_source(fila_eventos, al_get_keyboard_event_source());
     al_register_event_source(fila_eventos, al_get_display_event_source(janela));
+    al_register_event_source(fila_eventos, al_get_timer_event_source(timer));
 
-    while (!sair)    {
+    al_start_timer(timer);
+
+    while (!sair){
+        count++;
         while(!al_is_event_queue_empty(fila_eventos)){
 
             ALLEGRO_EVENT evento;
@@ -112,6 +121,40 @@ int main(void){
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
                     teclaDown[2] = false;
                 }
+            }else if(evento.type == ALLEGRO_EVENT_TIMER){
+                if (player.positionY > ALTURA_TELA - 68){
+                    isGrounded = true;
+                    isFalling = false;
+                    player.positionY = ALTURA_TELA - 68;
+                    player.speedY = jumpSpeed;
+                }
+                if(isJumping){
+                    player.positionY -= player.speedY;
+                    player.speedY-=0.2;
+                    if(player.speedY <= 0){
+                        isFalling = true;
+                        isJumping = false;
+                    }
+                }
+                if (isGrounded && teclaDown[0]){
+                    isJumping = true;
+                }else if(!isGrounded && !teclaDown[0]){
+                    isFalling = true;
+                }
+                if (!isGrounded && isFalling){
+                    player.positionY += player.speedY;
+                    player.speedY+=0.2;
+                }
+                if (teclaDown[1]){
+                    player.positionX -= player.speedX;
+                    player.rotationY = 1;
+                }
+                if (teclaDown[2]){
+                    player.positionX += player.speedX;
+                    player.rotationY = 0;
+                }
+
+                redraw = true;
             }else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
                 sair = true;
             }
@@ -166,42 +209,15 @@ int main(void){
             }
         }
 
-        if (player.positionY > ALTURA_TELA - 68){
-            isGrounded = true;
-            isFalling = false;
-            player.positionY = ALTURA_TELA - 68;
-            player.speedY = jumpSpeed;
+        if(redraw){
+            redraw = false;
+
+            al_draw_bitmap(sapo[0].image, sapo[0].positionX, sapo[0].positionY, sapo[0].rotationY);
+            al_draw_bitmap(sapo[1].image, sapo[1].positionX, sapo[1].positionY, sapo[1].rotationY);
+            al_draw_bitmap(player.image, player.positionX, player.positionY, player.rotationY);
+            al_flip_display();
+            al_clear_to_color(al_map_rgb(0, 0, 0));
         }
-        if(isJumping){
-            player.positionY -= player.speedY;
-            player.speedY-=0.2;
-            if(player.speedY <= 0){
-                isFalling = true;
-                isJumping = false;
-            }
-        }
-        if (isGrounded && teclaDown[0]){
-            isJumping = true;
-        }else if(!isGrounded && !teclaDown[0]){
-            isFalling = true;
-        }
-        if (!isGrounded && isFalling){
-            player.positionY += player.speedY;
-            player.speedY+=0.2;
-        }
-        if (teclaDown[1]){
-            player.positionX -= player.speedX;
-            player.rotationY = 1;
-        }
-        if (teclaDown[2]){
-            player.positionX += player.speedX;
-            player.rotationY = 0;
-        }
-        al_draw_bitmap(sapo[0].image, sapo[0].positionX, sapo[0].positionY, sapo[0].rotationY);
-        al_draw_bitmap(sapo[1].image, sapo[1].positionX, sapo[1].positionY, sapo[1].rotationY);
-        al_draw_bitmap(player.image, player.positionX, player.positionY, player.rotationY);
-        al_flip_display();
-        al_clear_to_color(al_map_rgb(0, 0, 0));
     }
 
     al_destroy_display(janela);

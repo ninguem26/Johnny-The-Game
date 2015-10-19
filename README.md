@@ -10,7 +10,7 @@ Para instalação das dependências da Allegro5, abra o terminal de sua distribu
 
 ```
 $ sudo apt-get install build-essential cmake xorg-dev libgl1-mesa-dev libglu-dev
-$ sudo apt-get install libpng-dev libcurl4-dev libfreetype6-dev  libjpeg-dev libvorbis-dev libopenal-dev  libphysfs-dev libgtk2.0-dev libasound-dev 
+$ sudo apt-get install libpng-dev libcurl4-dev libfreetype6-dev  libjpeg-dev libvorbis-dev libopenal-dev  libphysfs-dev libgtk2.0-dev libasound-dev
 libpulse-dev libflac-dev libdumb1-dev
 ```
 
@@ -30,6 +30,6 @@ $ sudo make install
 Com a Allegro5 instalada, basta agora compilar o arquivo do projeto e executá-lo:
 
 ```
-$ gcc -Wall johnny-the-game.c -o johnny-the-game `pkg-config --cflags --libs allegro-5.0 allegro_image-5.0`
+$ gcc -Wall johnny-the-game.c -o johnny-the-game structs.h utils.h utils.c physics.h physics.c player.h player.c `pkg-config --cflags --libs allegro-5.0 allegro_image-5.0 allegro_font-5.0 allegro_ttf-5.0`
 $ ./johnny-the-game
 ```

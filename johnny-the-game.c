@@ -34,8 +34,21 @@ int main(void){
 
     SPRITE player;
     SPRITE sapo[5];
+    SPRITE *bullet = NULL;
 
     initializePlayer(&player);
+
+    bullet = (SPRITE *) malloc(sizeof(SPRITE)*2);
+
+    bullet[0].positionX = 100;
+    bullet[0].positionY = 140;
+    bullet[0].rotationY = 0;
+    bullet[0].speedX = 8;
+
+    bullet[1].positionX = 100;
+    bullet[1].positionY = 140;
+    bullet[1].rotationY = 0;
+    bullet[1].speedX = 2;
 
     sapo[0].positionX = 200;
     sapo[0].positionY = 540;
@@ -65,9 +78,15 @@ int main(void){
     player.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2.png");
     player.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3.png");
     player.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4.png");
+    for(i = 0; i < sizeof(*bullet)*2/sizeof(SPRITE); i++){
+        bullet[i].image[0] = al_create_bitmap(getScreenWidth()/46, getScreenHeigth()/46);
+        al_set_target_bitmap(bullet[i].image[0]);
+        al_clear_to_color(al_map_rgb(255, 255, 255));
+    }
+    al_set_target_bitmap(al_get_backbuffer(janela));
     sapo[0].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     sapo[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
-    if (!player.image[0] || !sapo[0].image[0] || !sapo[1].image[0]){
+    if (!player.image[0] || !sapo[0].image[0] || !sapo[1].image[0] || !bullet[0].image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
         al_destroy_display(janela);
         return -1;
@@ -122,6 +141,9 @@ int main(void){
                     teclaDown[2] = false;
                 }
             }else if(evento.type == ALLEGRO_EVENT_TIMER){
+                for(i = 0; i < sizeof(*bullet)*2/sizeof(SPRITE); i++){
+                    bullet[i].positionX += bullet[i].speedX;
+                }
                 if (player.positionY + al_get_bitmap_height(player.image[0]) > getScreenHeigth()){
                     isGrounded = true;
                     isFalling = false;
@@ -212,6 +234,10 @@ int main(void){
 
         if(redraw){
             redraw = false;
+
+            for(i = 0; i < sizeof(*bullet)*2/sizeof(SPRITE); i++){
+                al_draw_bitmap(bullet[i].image[0], bullet[i].positionX, bullet[i].positionY, bullet[i].rotationY);
+            }
 
             al_draw_bitmap(sapo[0].image[0], sapo[0].positionX, sapo[0].positionY, sapo[0].rotationY);
             al_draw_bitmap(sapo[1].image[0], sapo[1].positionX, sapo[1].positionY, sapo[1].rotationY);

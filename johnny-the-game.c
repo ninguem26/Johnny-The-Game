@@ -18,8 +18,11 @@ ALLEGRO_TIMER *timer = NULL;
 int main(void){
     bool sair = false;
     bool teclaDown[3] = {false, false, false};
-    bool isGrounded = false, isFalling = false, isJumping = false;
+    bool isGrounded = false, isFalling = false, isJumping = false, isShooting = false;
     bool redraw = true;
+    bool freeMemory = false;
+
+    int nBullets = 0, bulletsOut = 0;
 
     const int maxFrame = 4;
     int curFrame = 0;
@@ -38,17 +41,7 @@ int main(void){
 
     initializePlayer(&player);
 
-    bullet = (SPRITE *) malloc(sizeof(SPRITE)*2);
-
-    bullet[0].positionX = 100;
-    bullet[0].positionY = 140;
-    bullet[0].rotationY = 0;
-    bullet[0].speedX = 8;
-
-    bullet[1].positionX = 100;
-    bullet[1].positionY = 140;
-    bullet[1].rotationY = 0;
-    bullet[1].speedX = 2;
+    bullet = (SPRITE *) malloc(sizeof(SPRITE));
 
     sapo[0].positionX = 200;
     sapo[0].positionY = 540;
@@ -78,15 +71,9 @@ int main(void){
     player.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2.png");
     player.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3.png");
     player.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4.png");
-    for(i = 0; i < sizeof(*bullet)*2/sizeof(SPRITE); i++){
-        bullet[i].image[0] = al_create_bitmap(getScreenWidth()/46, getScreenHeigth()/46);
-        al_set_target_bitmap(bullet[i].image[0]);
-        al_clear_to_color(al_map_rgb(255, 255, 255));
-    }
-    al_set_target_bitmap(al_get_backbuffer(janela));
     sapo[0].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     sapo[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
-    if (!player.image[0] || !sapo[0].image[0] || !sapo[1].image[0] || !bullet[0].image[0]){
+    if (!player.image[0] || !sapo[0].image[0] || !sapo[1].image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
         al_destroy_display(janela);
         return -1;
@@ -128,6 +115,25 @@ int main(void){
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
                     player.speedX = rightSpeed;
                     teclaDown[2] = true;
+                }else if(evento.keyboard.keycode == ALLEGRO_KEY_X && !isShooting){
+
+                    bullet[nBullets].positionX = player.positionX + al_get_bitmap_width(player.image[0]);
+                    bullet[nBullets].positionY = player.positionY + (al_get_bitmap_height(player.image[0])/2);
+                    bullet[nBullets].rotationY = 0;
+                    bullet[nBullets].speedX = 8;
+
+                    bullet[nBullets].image[0] = al_create_bitmap(getScreenWidth()/46, getScreenHeigth()/46);
+                    al_set_target_bitmap(bullet[nBullets].image[0]);
+                    al_clear_to_color(al_map_rgb(255, 255, 255));
+                    al_set_target_bitmap(al_get_backbuffer(janela));
+
+                    nBullets++;
+
+                    bullet = (SPRITE *) realloc(bullet, sizeof(SPRITE)*(nBullets+1));
+
+                    isShooting = true;
+
+                    printf("%d\n", isShooting);
                 }
             }else if(evento.type == ALLEGRO_EVENT_KEY_UP){
                 if(evento.keyboard.keycode == ALLEGRO_KEY_UP){
@@ -139,9 +145,12 @@ int main(void){
                     teclaDown[1] = false;
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
                     teclaDown[2] = false;
+                }else if(evento.keyboard.keycode == ALLEGRO_KEY_X){
+                    isShooting = false;
+                    printf("%d\n", isShooting);
                 }
             }else if(evento.type == ALLEGRO_EVENT_TIMER){
-                for(i = 0; i < sizeof(*bullet)*2/sizeof(SPRITE); i++){
+                for(i = 0; i < nBullets; i++){
                     bullet[i].positionX += bullet[i].speedX;
                 }
                 if (player.positionY + al_get_bitmap_height(player.image[0]) > getScreenHeigth()){
@@ -232,10 +241,30 @@ int main(void){
             }
         }
 
+        for(i = 0; i < nBullets; i++){
+            if(bullet[i].positionX > getScreenWidth() || bullet[i].positionX < 0){
+                bulletsOut++;
+            }
+        }
+
+        if(nBullets > 0 && bulletsOut >= nBullets){
+            freeMemory = true;
+            bulletsOut = 0;
+        }else{
+            bulletsOut = 0;
+        }
+
+        if(freeMemory){
+            bullet = NULL;
+            bullet = (SPRITE *) realloc(bullet, sizeof(SPRITE));
+            nBullets = 0;
+            freeMemory = false;
+        }
+
         if(redraw){
             redraw = false;
 
-            for(i = 0; i < sizeof(*bullet)*2/sizeof(SPRITE); i++){
+            for(i = 0; i < nBullets; i++){
                 al_draw_bitmap(bullet[i].image[0], bullet[i].positionX, bullet[i].positionY, bullet[i].rotationY);
             }
 
@@ -254,6 +283,7 @@ int main(void){
     al_destroy_bitmap(sapo[0].image[0]);
     al_destroy_bitmap(sapo[1].image[0]);
     al_destroy_event_queue(fila_eventos);
+    free(bullet);
 
     return 0;
 }

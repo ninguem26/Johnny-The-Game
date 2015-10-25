@@ -6,10 +6,10 @@
 #include <stdio.h>
 
 // Arquivos do projeto
-#include "structs.h"
-#include "utils.h"
-#include "physics.h"
-#include "player.h"
+#include "resources/structs.h"
+#include "resources/utils.h"
+#include "resources/physics.h"
+#include "resources/player.h"
 
 ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;

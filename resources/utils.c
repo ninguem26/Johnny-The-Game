@@ -27,7 +27,7 @@ void createBullet(SPRITE *bullet, SPRITE *player, int *nBullets, ALLEGRO_DISPLAY
     bullet[*nBullets].rotationY = 0;
 
     //Definindo bitmap do projétil
-    bullet[*nBullets].image[0] = al_create_bitmap(getScreenWidth()/100, getScreenHeigth()/100);
+    bullet[*nBullets].image[0] = al_create_bitmap(getScreenWidth()/50, getScreenHeigth()/100);
     al_set_target_bitmap(bullet[*nBullets].image[0]);
     al_clear_to_color(al_map_rgb(255, 255, 255));
 

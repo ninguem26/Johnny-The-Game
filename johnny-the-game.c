@@ -29,25 +29,25 @@ int main(void){
     int frameCount = 0;
     int frameDelay = 7;
 
-    int i, j, k;
+    int i;
     int count = 0;
     int FPS = 60;
 
     float jumpSpeed = 5, rightSpeed = 3, leftSpeed = 3;
 
     SPRITE player;
-    SPRITE sapo[5];
+    SPRITE platform[5];
     SPRITE bullet[1000];
 
     initializePlayer(&player);
 
-    sapo[0].positionX = 200;
-    sapo[0].positionY = 540;
-    sapo[0].rotationY = 0;
+    platform[0].positionX = 200;
+    platform[0].positionY = 540;
+    platform[0].rotationY = 0;
 
-    sapo[1].positionX = 400;
-    sapo[1].positionY = 500;
-    sapo[1].rotationY = 0;
+    platform[1].positionX = 400;
+    platform[1].positionY = 500;
+    platform[1].rotationY = 0;
 
     if (!al_init()){
         fprintf(stderr, "Falha ao inicializar a Allegro.\n");
@@ -65,13 +65,13 @@ int main(void){
         return -1;
     }
 
-    player.image[0] = al_load_bitmap("sprites/Johnny/johnny_frame-1.png");
-    player.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2.png");
-    player.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3.png");
-    player.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4.png");
-    sapo[0].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
-    sapo[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
-    if (!player.image[0] || !sapo[0].image[0] || !sapo[1].image[0]){
+    player.image[0] = al_load_bitmap("sprites/Johnny/johnny_frame-1 42x54.png");
+    player.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2 42x54.png");
+    player.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3 42x54.png");
+    player.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4 42x54.png");
+    platform[0].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
+    platform[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
+    if (!player.image[0] || !platform[0].image[0] || !platform[1].image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
         al_destroy_display(janela);
         return -1;
@@ -189,15 +189,15 @@ int main(void){
 
         //Colisão do PLAYER com o cenário
         for(i = 0; i < 2; i++){
-            if(collisionY(player, sapo[i], 10)){
-                if(collisionLeft(player, sapo[i])){
-                    player.positionX = sapo[i].positionX - al_get_bitmap_width(player.image[0]);
+            if(collisionY(player, platform[i], 10)){
+                if(collisionLeft(player, platform[i])){
+                    player.positionX = platform[i].positionX - al_get_bitmap_width(player.image[0]);
                     rightSpeed = 0;
                 }else{
                     rightSpeed = 3;
                 }
-                if(collisionRight(player, sapo[i])){
-                    player.positionX = sapo[i].positionX + al_get_bitmap_width(sapo[i].image[0]);
+                if(collisionRight(player, platform[i])){
+                    player.positionX = platform[i].positionX + al_get_bitmap_width(platform[i].image[0]);
                     leftSpeed = 0;
                 }else{
                     leftSpeed = 3;
@@ -206,15 +206,21 @@ int main(void){
                 rightSpeed = 3;
                 leftSpeed = 3;
             }
-            if(collisionX(player, sapo[i])){
-                if(collisionTop(player, sapo[i])){
-                    player.positionY = sapo[i].positionY - al_get_bitmap_height(player.image[0]) - 1;
+            if(collisionX(player, platform[i])){
+                if(collisionTop(player, platform[i])){
+                    player.positionY = platform[i].positionY - al_get_bitmap_height(player.image[0]) - 1;
                     isGrounded = true;
                     isFalling = false;
                     player.speedY = jumpSpeed;
                 }
+                if(collisionDown(player, platform[i])){
+                    player.positionY = platform[i].positionY + al_get_bitmap_height(platform[i].image[0]) - 1;
+                    if(isJumping){
+                        player.speedY = 0;
+                    }
+                }
             }else{
-                if(player.positionY == sapo[i].positionY - al_get_bitmap_height(player.image[0]) - 1){
+                if(player.positionY == platform[i].positionY - al_get_bitmap_height(player.image[0]) - 1){
                     isGrounded = false;
                     isFalling = true;
                 }
@@ -222,26 +228,7 @@ int main(void){
         }
 
         //Colisão dos PROJETEIS com o cenário
-        i = 0;
-        while(i < nBullets){
-            for(j = 0; j < 2; j++){
-                if(collisionY(bullet[i], sapo[j], 0)){
-                    if(collisionLeft(bullet[i], sapo[j]) || collisionRight(bullet[i], sapo[j])){
-                        al_destroy_bitmap(bullet[i].image[0]); //Destruindo bitmap do projétil que colidiu
-                        k = i;
-                        while(k < nBullets){ //Movendo projétil que colidiu para o final do array
-                            if(k < nBullets-1){
-                                bullet[k] = bullet[k+1];
-                            }else{
-                                nBullets--;
-                            }
-                            k++;
-                        }
-                    }
-                }
-            }
-            i++;
-        }
+        bulletCollision(bullet, platform, &nBullets);
 
         //Instanciando projétil
         if(isShooting){
@@ -277,8 +264,8 @@ int main(void){
                 al_draw_bitmap(bullet[i].image[0], bullet[i].positionX, bullet[i].positionY, bullet[i].rotationY);
             }
 
-            al_draw_bitmap(sapo[0].image[0], sapo[0].positionX, sapo[0].positionY, sapo[0].rotationY);
-            al_draw_bitmap(sapo[1].image[0], sapo[1].positionX, sapo[1].positionY, sapo[1].rotationY);
+            al_draw_bitmap(platform[0].image[0], platform[0].positionX, platform[0].positionY, platform[0].rotationY);
+            al_draw_bitmap(platform[1].image[0], platform[1].positionX, platform[1].positionY, platform[1].rotationY);
             al_draw_bitmap(player.image[curFrame], player.positionX, player.positionY, player.rotationY);
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -291,8 +278,8 @@ int main(void){
     for(i = 0; i < nBullets; i++){
         al_destroy_bitmap(bullet[i].image[0]);
     }
-    al_destroy_bitmap(sapo[0].image[0]);
-    al_destroy_bitmap(sapo[1].image[0]);
+    al_destroy_bitmap(platform[0].image[0]);
+    al_destroy_bitmap(platform[1].image[0]);
     al_destroy_event_queue(fila_eventos);
     al_destroy_display(janela);
 

@@ -17,4 +17,9 @@ typedef struct {
     SPRITE sprite;
 } PLAYER;
 
+typedef struct {
+    bool isActive;
+    SPRITE sprite;
+} BULLET;
+
 #endif

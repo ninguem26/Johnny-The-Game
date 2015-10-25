@@ -8,9 +8,9 @@
 // Arquivos do projeto
 #include "physics.h"
 
-bool collisionY(SPRITE collider1, SPRITE collider2){
-    if((collider2.positionY < collider1.positionY + al_get_bitmap_height(collider1.image[0]) - 10) &&
-       (collider2.positionY + al_get_bitmap_height(collider2.image[0]) > collider1.positionY) + 10){
+bool collisionY(SPRITE collider1, SPRITE collider2, int i){
+    if((collider2.positionY < collider1.positionY + al_get_bitmap_height(collider1.image[0]) - i) &&
+       (collider2.positionY + al_get_bitmap_height(collider2.image[0]) > collider1.positionY + i)){
          return true;
     }
     return false;

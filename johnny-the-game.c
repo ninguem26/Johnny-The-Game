@@ -29,7 +29,7 @@ int main(void){
     int frameCount = 0;
     int frameDelay = 7;
 
-    int i;
+    int i, j, k;
     int count = 0;
     int FPS = 60;
 
@@ -187,8 +187,9 @@ int main(void){
             isFalling = false;
         }
 
+        //Colisão do PLAYER com o cenário
         for(i = 0; i < 2; i++){
-            if(collisionY(player, sapo[i])){
+            if(collisionY(player, sapo[i], 10)){
                 if(collisionLeft(player, sapo[i])){
                     player.positionX = sapo[i].positionX - al_get_bitmap_width(player.image[0]);
                     rightSpeed = 0;
@@ -220,19 +221,31 @@ int main(void){
             }
         }
 
+        //Colisão dos PROJETEIS com o cenário
+        i = 0;
+        while(i < nBullets){
+            for(j = 0; j < 2; j++){
+                if(collisionY(bullet[i], sapo[j], 0)){
+                    if(collisionLeft(bullet[i], sapo[j]) || collisionRight(bullet[i], sapo[j])){
+                        al_destroy_bitmap(bullet[i].image[0]); //Destruindo bitmap do projétil que colidiu
+                        k = i;
+                        while(k < nBullets){ //Movendo projétil que colidiu para o final do array
+                            if(k < nBullets-1){
+                                bullet[k] = bullet[k+1];
+                            }else{
+                                nBullets--;
+                            }
+                            k++;
+                        }
+                    }
+                }
+            }
+            i++;
+        }
+
+        //Instanciando projétil
         if(isShooting){
-            bullet[nBullets].positionX = player.positionX + al_get_bitmap_width(player.image[0]);
-            bullet[nBullets].positionY = player.positionY + (al_get_bitmap_height(player.image[0])/2);
-            bullet[nBullets].rotationY = 0;
-            bullet[nBullets].speedX = 8;
-
-            bullet[nBullets].image[0] = al_create_bitmap(getScreenWidth()/46, getScreenHeigth()/46);
-            al_set_target_bitmap(bullet[nBullets].image[0]);
-            al_clear_to_color(al_map_rgb(255, 255, 255));
-
-            al_set_target_bitmap(al_get_backbuffer(janela));
-
-            nBullets++;
+            createBullet(bullet, &player, &nBullets, janela);
             isShooting = false;
         }
 
@@ -249,7 +262,7 @@ int main(void){
             bulletsOut = 0;
         }
 
-        if(freeMemory || nBullets >= 999){
+        if(freeMemory || nBullets >= (sizeof(bullet)/sizeof(SPRITE))-1){
             for(i = 0; i < nBullets; i++){
                 al_destroy_bitmap(bullet[i].image[0]);
             }

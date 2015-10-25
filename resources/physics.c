@@ -78,3 +78,46 @@ void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets){
         i++;
     }
 }
+
+void playerCollision(SPRITE *collider1, SPRITE *collider2, float *rightSpeed, float *leftSpeed, float *jumpSpeed,
+                        bool *isGrounded, bool *isJumping, bool *isFalling){
+    int i;
+    for(i = 0; i < 2; i++){
+        if(collisionY(*collider1, collider2[i], 10)){
+            if(collisionLeft(*collider1, collider2[i])){
+                collider1->positionX = collider2[i].positionX - al_get_bitmap_width(collider1->image[0]);
+                *rightSpeed = 0;
+            }else{
+                *rightSpeed = 3;
+            }
+            if(collisionRight(*collider1, collider2[i])){
+                collider1->positionX = collider2[i].positionX + al_get_bitmap_width(collider2[i].image[0]);
+                *leftSpeed = 0;
+            }else{
+                *leftSpeed = 3;
+            }
+        }else{
+            *rightSpeed = 3;
+            *leftSpeed = 3;
+        }
+        if(collisionX(*collider1, collider2[i])){
+            if(collisionTop(*collider1, collider2[i])){
+                collider1->positionY = collider2[i].positionY - al_get_bitmap_height(collider1->image[0]) - 1;
+                *isGrounded = true;
+                *isFalling = false;
+                collider1->speedY = *jumpSpeed;
+            }
+            if(collisionDown(*collider1, collider2[i])){
+                collider1->positionY = collider2[i].positionY + al_get_bitmap_height(collider2[i].image[0]) - 1;
+                if(*isJumping){
+                    collider1->speedY = 0;
+                }
+            }
+        }else{
+            if(collider1->positionY == collider2[i].positionY - al_get_bitmap_height(collider1->image[0]) - 1){
+                *isGrounded = false;
+                *isFalling = true;
+            }
+        }
+    }
+}

@@ -188,44 +188,7 @@ int main(void){
         }
 
         //Colisão do PLAYER com o cenário
-        for(i = 0; i < 2; i++){
-            if(collisionY(player, platform[i], 10)){
-                if(collisionLeft(player, platform[i])){
-                    player.positionX = platform[i].positionX - al_get_bitmap_width(player.image[0]);
-                    rightSpeed = 0;
-                }else{
-                    rightSpeed = 3;
-                }
-                if(collisionRight(player, platform[i])){
-                    player.positionX = platform[i].positionX + al_get_bitmap_width(platform[i].image[0]);
-                    leftSpeed = 0;
-                }else{
-                    leftSpeed = 3;
-                }
-            }else{
-                rightSpeed = 3;
-                leftSpeed = 3;
-            }
-            if(collisionX(player, platform[i])){
-                if(collisionTop(player, platform[i])){
-                    player.positionY = platform[i].positionY - al_get_bitmap_height(player.image[0]) - 1;
-                    isGrounded = true;
-                    isFalling = false;
-                    player.speedY = jumpSpeed;
-                }
-                if(collisionDown(player, platform[i])){
-                    player.positionY = platform[i].positionY + al_get_bitmap_height(platform[i].image[0]) - 1;
-                    if(isJumping){
-                        player.speedY = 0;
-                    }
-                }
-            }else{
-                if(player.positionY == platform[i].positionY - al_get_bitmap_height(player.image[0]) - 1){
-                    isGrounded = false;
-                    isFalling = true;
-                }
-            }
-        }
+        playerCollision(&player, platform, &rightSpeed, &leftSpeed, &jumpSpeed, &isGrounded, &isJumping, &isFalling);
 
         //Colisão dos PROJETEIS com o cenário
         bulletCollision(bullet, platform, &nBullets);

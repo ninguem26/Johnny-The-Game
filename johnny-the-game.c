@@ -1,6 +1,8 @@
 // Arquivos da Allegro 5
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 
 // Bibliotecas do C
 #include <stdio.h>
@@ -14,6 +16,7 @@
 ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
 ALLEGRO_TIMER *timer = NULL;
+ALLEGRO_FONT *font = NULL;
 
 int main(void){
     bool sair = false;
@@ -38,6 +41,7 @@ int main(void){
     SPRITE player;
     SPRITE platform[5];
     SPRITE bullet[1000];
+    SPRITE enemy[5];
 
     initializePlayer(&player);
 
@@ -49,8 +53,21 @@ int main(void){
     platform[1].positionY = 500;
     platform[1].rotationY = 0;
 
+    enemy[0].positionX = 400;
+    enemy[0].positionY = 560;
+    enemy[0].rotationY = 0;
+    enemy[0].speedX = 2;
+
     if (!al_init()){
         fprintf(stderr, "Falha ao inicializar a Allegro.\n");
+        return -1;
+    }
+
+    al_init_font_addon();
+
+    if (!al_init_ttf_addon())
+    {
+        fprintf(stderr, "Falha ao inicializar add-on allegro_ttf.\n");
         return -1;
     }
 
@@ -71,7 +88,8 @@ int main(void){
     player.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4 42x54.png");
     platform[0].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     platform[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
-    if (!player.image[0] || !platform[0].image[0] || !platform[1].image[0]){
+    enemy[0].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
+    if (!player.image[0] || !platform[0].image[0] || !platform[1].image[0] || !enemy[0].image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
         al_destroy_display(janela);
         return -1;
@@ -91,6 +109,14 @@ int main(void){
         return -1;
     }
 
+    font = al_load_font("fonts/nobile.ttf", 18, 0);
+    if (!font)
+    {
+        al_destroy_display(janela);
+        fprintf(stderr, "Falha ao carregar fonte.\n");
+        return -1;
+    }
+
     al_register_event_source(fila_eventos, al_get_keyboard_event_source());
     al_register_event_source(fila_eventos, al_get_display_event_source(janela));
     al_register_event_source(fila_eventos, al_get_timer_event_source(timer));
@@ -105,7 +131,7 @@ int main(void){
             al_wait_for_event(fila_eventos, &evento);
 
             if (evento.type == ALLEGRO_EVENT_KEY_DOWN){
-                if(evento.keyboard.keycode == ALLEGRO_KEY_UP){
+                if(evento.keyboard.keycode == ALLEGRO_KEY_UP && isGrounded){
                     teclaDown[0] = true;
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
                     player.speedX = leftSpeed;
@@ -132,6 +158,9 @@ int main(void){
                 for(i = 0; i < nBullets; i++){
                     bullet[i].positionX += bullet[i].speedX;
                 }
+
+                enemy[0].positionX += -enemy[0].speedX;
+
                 if (player.positionY + al_get_bitmap_height(player.image[0]) > getScreenHeigth()){
                     isGrounded = true;
                     isFalling = false;
@@ -193,6 +222,19 @@ int main(void){
         //Colisão dos PROJETEIS com o cenário
         bulletCollision(bullet, platform, &nBullets);
 
+        for(i = 0; i < 2; i++){
+            if(collisionY(enemy[0], platform[i], 0)){
+                if(collisionLeft(enemy[0], platform[i])){
+                    enemy[0].positionX = platform[i].positionX - al_get_bitmap_width(enemy[0].image[0]);
+                    enemy[0].speedX *= -1;
+                }
+                if(collisionRight(enemy[0], platform[i])){
+                    enemy[0].positionX = platform[i].positionX + al_get_bitmap_width(platform[i].image[0]);
+                    enemy[0].speedX *= -1;
+                }
+            }
+        }
+
         //Instanciando projétil
         if(isShooting){
             createBullet(bullet, &player, &nBullets, janela);
@@ -227,9 +269,13 @@ int main(void){
                 al_draw_bitmap(bullet[i].image[0], bullet[i].positionX, bullet[i].positionY, bullet[i].rotationY);
             }
 
+            al_draw_bitmap(enemy[0].image[0], enemy[0].positionX, enemy[0].positionY, enemy[0].rotationY);
             al_draw_bitmap(platform[0].image[0], platform[0].positionX, platform[0].positionY, platform[0].rotationY);
             al_draw_bitmap(platform[1].image[0], platform[1].positionX, platform[1].positionY, platform[1].rotationY);
             al_draw_bitmap(player.image[curFrame], player.positionX, player.positionY, player.rotationY);
+
+            al_draw_text(font, al_map_rgb(255, 255, 255), 80, 30, ALLEGRO_ALIGN_CENTRE, "Vidas: ???");
+
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
         }
@@ -243,6 +289,7 @@ int main(void){
     }
     al_destroy_bitmap(platform[0].image[0]);
     al_destroy_bitmap(platform[1].image[0]);
+    al_destroy_font(font);
     al_destroy_event_queue(fila_eventos);
     al_destroy_display(janela);
 

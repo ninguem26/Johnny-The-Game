@@ -56,10 +56,10 @@ bool collisionDown(SPRITE collider1, SPRITE collider2){
     return false;
 }
 
-void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets){
+void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets, int nPlatforms){
     int i = 0, j, k = 0;
     while(i < *nBullets){
-        for(j = 0; j < 2; j++){
+        for(j = 0; j < nPlatforms; j++){
             if(collisionY(collider1[i], collider2[j], 0)){
                 if(collisionLeft(collider1[i], collider2[j]) || collisionRight(collider1[i], collider2[j])){
                     al_destroy_bitmap(collider1[i].image[0]); //Destruindo bitmap do projétil que colidiu
@@ -80,9 +80,9 @@ void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets){
 }
 
 void playerCollision(SPRITE *collider1, SPRITE *collider2, float *rightSpeed, float *leftSpeed, float *jumpSpeed,
-                        bool *isGrounded, bool *isJumping, bool *isFalling){
+                        bool *isGrounded, bool *isJumping, bool *isFalling, int nPlatforms){
     int i;
-    for(i = 0; i < 2; i++){
+    for(i = 0; i < nPlatforms; i++){
         if(collisionY(*collider1, collider2[i], 10)){
             if(collisionLeft(*collider1, collider2[i])){
                 collider1->positionX = collider2[i].positionX - al_get_bitmap_width(collider1->image[0]);

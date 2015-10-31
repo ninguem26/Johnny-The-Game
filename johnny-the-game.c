@@ -26,37 +26,49 @@ int main(void){
     bool freeMemory = false;
 
     int nBullets = 0, bulletsOut = 0;
+    int nPlatforms = 3;
 
     const int maxFrame = 4;
     int curFrame = 0;
     int frameCount = 0;
     int frameDelay = 7;
 
-    int i;
+    int i, j, aux;
     int count = 0;
     int FPS = 60;
 
     float jumpSpeed = 5, rightSpeed = 3, leftSpeed = 3;
 
     SPRITE player;
-    SPRITE platform[5];
+    SPRITE *platform;
     SPRITE bullet[1000];
     SPRITE enemy[5];
 
     initializePlayer(&player);
 
-    platform[0].positionX = 200;
-    platform[0].positionY = 540;
+    platform = (SPRITE *) malloc(sizeof(SPRITE)*nPlatforms);
+
+    platform[0].positionX = 250;
+    platform[0].positionY = 500;
     platform[0].rotationY = 0;
 
-    platform[1].positionX = 400;
-    platform[1].positionY = 500;
+    platform[1].positionX = 250;
+    platform[1].positionY = 400;
     platform[1].rotationY = 0;
 
-    enemy[0].positionX = 400;
-    enemy[0].positionY = 560;
+    platform[2].positionX = 250;
+    platform[2].positionY = 300;
+    platform[2].rotationY = 0;
+
+    enemy[0].positionX = 460;
+    enemy[0].positionY = 465;
     enemy[0].rotationY = 0;
     enemy[0].speedX = 2;
+
+    enemy[1].positionX = 460;
+    enemy[1].positionY = 365;
+    enemy[1].rotationY = 0;
+    enemy[1].speedX = 2;
 
     if (!al_init()){
         fprintf(stderr, "Falha ao inicializar a Allegro.\n");
@@ -86,9 +98,11 @@ int main(void){
     player.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2 42x54.png");
     player.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3 42x54.png");
     player.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4 42x54.png");
-    platform[0].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
+    platform[0].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
     platform[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
+    platform[2].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
     enemy[0].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
+    enemy[1].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
     if (!player.image[0] || !platform[0].image[0] || !platform[1].image[0] || !enemy[0].image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
         al_destroy_display(janela);
@@ -159,7 +173,9 @@ int main(void){
                     bullet[i].positionX += bullet[i].speedX;
                 }
 
-                enemy[0].positionX += -enemy[0].speedX;
+                for(i = 0; i < 2; i++){
+                    enemy[i].positionX += -enemy[i].speedX;
+                }
 
                 if (player.positionY + al_get_bitmap_height(player.image[0]) > getScreenHeigth()){
                     isGrounded = true;
@@ -217,12 +233,42 @@ int main(void){
         }
 
         //Colisão do PLAYER com o cenário
-        playerCollision(&player, platform, &rightSpeed, &leftSpeed, &jumpSpeed, &isGrounded, &isJumping, &isFalling);
+        playerCollision(&player, platform, &rightSpeed, &leftSpeed, &jumpSpeed, &isGrounded, &isJumping, &isFalling, nPlatforms);
 
         //Colisão dos PROJETEIS com o cenário
-        bulletCollision(bullet, platform, &nBullets);
+        bulletCollision(bullet, platform, &nBullets, nPlatforms);
 
         for(i = 0; i < 2; i++){
+            aux = 0;
+            for(j = 0; j < nPlatforms; j++){
+                if(j + 1 < nPlatforms){
+                    if(platform[j].positionY - enemy[i].positionY > 0){
+                        if(platform[j+1].positionY - enemy[i].positionY > 0){
+                            if(platform[j].positionY - enemy[i].positionY < platform[j+1].positionY - enemy[i].positionY){
+                                aux = j;
+                            }else{
+                                aux = j+1;
+                            }
+                        }else{
+                            aux = j;
+                        }
+                    }
+                }
+            }
+
+            if(platform[aux].positionY > enemy[i].positionY + al_get_bitmap_height(enemy[i].image[0])){
+                if(collisionLeft(enemy[i], platform[aux])){
+                    enemy[i].positionX = platform[aux].positionX;
+                    enemy[i].speedX *= -1;
+                }
+                if(collisionRight(enemy[i], platform[aux])){
+                    enemy[i].positionX = (platform[aux].positionX + al_get_bitmap_width(platform[aux].image[0]) - al_get_bitmap_width(enemy[i].image[0]));
+                    enemy[i].speedX *= -1;
+                }
+            }
+        }
+
+        for(i = 0; i < nPlatforms; i++){
             if(collisionY(enemy[0], platform[i], 0)){
                 if(collisionLeft(enemy[0], platform[i])){
                     enemy[0].positionX = platform[i].positionX - al_get_bitmap_width(enemy[0].image[0]);
@@ -269,9 +315,13 @@ int main(void){
                 al_draw_bitmap(bullet[i].image[0], bullet[i].positionX, bullet[i].positionY, bullet[i].rotationY);
             }
 
-            al_draw_bitmap(enemy[0].image[0], enemy[0].positionX, enemy[0].positionY, enemy[0].rotationY);
-            al_draw_bitmap(platform[0].image[0], platform[0].positionX, platform[0].positionY, platform[0].rotationY);
-            al_draw_bitmap(platform[1].image[0], platform[1].positionX, platform[1].positionY, platform[1].rotationY);
+            for(i = 0; i < 2; i++){
+                al_draw_bitmap(enemy[i].image[0], enemy[i].positionX, enemy[i].positionY, enemy[i].rotationY);
+            }
+
+            for(i = 0; i < nPlatforms; i++){
+                al_draw_bitmap(platform[i].image[0], platform[i].positionX, platform[i].positionY, platform[i].rotationY);
+            }
             al_draw_bitmap(player.image[curFrame], player.positionX, player.positionY, player.rotationY);
 
             al_draw_text(font, al_map_rgb(255, 255, 255), 80, 30, ALLEGRO_ALIGN_CENTRE, "Vidas: ???");
@@ -289,6 +339,7 @@ int main(void){
     }
     al_destroy_bitmap(platform[0].image[0]);
     al_destroy_bitmap(platform[1].image[0]);
+    al_destroy_bitmap(platform[2].image[0]);
     al_destroy_font(font);
     al_destroy_event_queue(fila_eventos);
     al_destroy_display(janela);

@@ -35,3 +35,15 @@ void createBullet(SPRITE *bullet, SPRITE *player, int *nBullets, ALLEGRO_DISPLAY
 
     *nBullets = *nBullets+1;
 }
+
+//Move para o fim do array um elemento de indice indicado pelo parâmetro 'index' no array '*sprite'
+void moveToEnd(SPRITE *sprite, int index, int *length){
+    while(index < *length){
+        if(index < *length-1){
+            sprite[index] = sprite[index+1];
+        }else{
+            *length = *length-1;
+        }
+        index++;
+    }
+}

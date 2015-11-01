@@ -12,6 +12,7 @@
 #include "resources/utils.h"
 #include "resources/physics.h"
 #include "resources/player.h"
+#include "resources/enemy.h"
 
 ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
@@ -26,7 +27,7 @@ int main(void){
     bool freeMemory = false;
 
     int nBullets = 0, bulletsOut = 0;
-    int nPlatforms = 3;
+    int nPlatforms = 5;
     int nEnemys = 2;
 
     const int maxFrame = 4;
@@ -34,7 +35,7 @@ int main(void){
     int frameCount = 0;
     int frameDelay = 7;
 
-    int i, j, aux;
+    int i;
     int count = 0;
     int FPS = 60;
 
@@ -43,34 +44,43 @@ int main(void){
     SPRITE player;
     SPRITE *platform;
     SPRITE *enemy;
-    SPRITE bullet[1000];
+    SPRITE *bullet;
 
     initializePlayer(&player);
 
+    bullet = (SPRITE *) malloc(sizeof(SPRITE)*1000);
     platform = (SPRITE *) malloc(sizeof(SPRITE)*nPlatforms);
     enemy = (SPRITE *) malloc(sizeof(SPRITE)*nEnemys);
 
-    platform[0].positionX = 250;
-    platform[0].positionY = 500;
+    platform[0].positionX = 8*32;
+    platform[0].positionY = 504;
     platform[0].rotationY = 0;
 
-    platform[1].positionX = 250;
-    platform[1].positionY = 400;
+    platform[1].positionX = 7*32;
+    platform[1].positionY = 536;
     platform[1].rotationY = 0;
 
-    platform[2].positionX = 250;
-    platform[2].positionY = 300;
+    platform[2].positionX = 10*32;
+    platform[2].positionY = 472;
     platform[2].rotationY = 0;
 
-    enemy[0].positionX = 460;
-    enemy[0].positionY = 465;
-    enemy[0].rotationY = 0;
-    enemy[0].speedX = 2;
+    platform[3].positionX = 200;
+    platform[3].positionY = 250;
+    platform[3].rotationY = 0;
 
-    enemy[1].positionX = 460;
-    enemy[1].positionY = 365;
+    platform[4].positionX = 0;
+    platform[4].positionY = 568;
+    platform[4].rotationY = 0;
+
+    enemy[0].positionX = 350;
+    enemy[0].positionY = 440;
+    enemy[0].rotationY = 0;
+    enemy[0].speedX = -2;
+
+    enemy[1].positionX = 420;
+    enemy[1].positionY = 536;
     enemy[1].rotationY = 0;
-    enemy[1].speedX = 2;
+    enemy[1].speedX = -2;
 
     if (!al_init()){
         fprintf(stderr, "Falha ao inicializar a Allegro.\n");
@@ -103,6 +113,8 @@ int main(void){
     platform[0].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
     platform[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     platform[2].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
+    platform[3].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
+    platform[4].image[0] = al_load_bitmap("sprites/tijolos 800x32.png");
     enemy[0].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
     enemy[1].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
     if (!player.image[0] || !platform[0].image[0] || !platform[1].image[0] || !enemy[0].image[0]){
@@ -157,7 +169,6 @@ int main(void){
                     teclaDown[2] = true;
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_X && !isShooting){
                     isShooting = true;
-                    printf("%d\n", nBullets);
                 }
             }else if(evento.type == ALLEGRO_EVENT_KEY_UP){
                 if(evento.keyboard.keycode == ALLEGRO_KEY_UP){
@@ -175,8 +186,8 @@ int main(void){
                     bullet[i].positionX += bullet[i].speedX;
                 }
 
-                for(i = 0; i < 2; i++){
-                    enemy[i].positionX += -enemy[i].speedX;
+                for(i = 0; i < nEnemys; i++){
+                    enemy[i].positionX += enemy[i].speedX;
                 }
 
                 if (player.positionY + al_get_bitmap_height(player.image[0]) > getScreenHeigth()){
@@ -240,48 +251,11 @@ int main(void){
         //Colisão dos PROJETEIS com o cenário
         bulletCollision(bullet, platform, &nBullets, nPlatforms);
 
-        for(i = 0; i < nEnemys; i++){
-            aux = 0;
-            for(j = 0; j < nPlatforms; j++){
-                if(j + 1 < nPlatforms){
-                    if(platform[j].positionY - enemy[i].positionY > 0){
-                        if(platform[j+1].positionY - enemy[i].positionY > 0){
-                            if(platform[j].positionY - enemy[i].positionY < platform[j+1].positionY - enemy[i].positionY){
-                                aux = j;
-                            }else{
-                                aux = j+1;
-                            }
-                        }else{
-                            aux = j;
-                        }
-                    }
-                }
-            }
+        //Colisão dos INIMIGOS com o cenário
+        enemyCollision(enemy, platform, nPlatforms, nEnemys);
 
-            if(platform[aux].positionY > enemy[i].positionY + al_get_bitmap_height(enemy[i].image[0])){
-                if(collisionLeft(enemy[i], platform[aux])){
-                    enemy[i].positionX = platform[aux].positionX;
-                    enemy[i].speedX *= -1;
-                }
-                if(collisionRight(enemy[i], platform[aux])){
-                    enemy[i].positionX = (platform[aux].positionX + al_get_bitmap_width(platform[aux].image[0]) - al_get_bitmap_width(enemy[i].image[0]));
-                    enemy[i].speedX *= -1;
-                }
-            }
-        }
-
-        for(i = 0; i < nPlatforms; i++){
-            if(collisionY(enemy[0], platform[i], 0)){
-                if(collisionLeft(enemy[0], platform[i])){
-                    enemy[0].positionX = platform[i].positionX - al_get_bitmap_width(enemy[0].image[0]);
-                    enemy[0].speedX *= -1;
-                }
-                if(collisionRight(enemy[0], platform[i])){
-                    enemy[0].positionX = platform[i].positionX + al_get_bitmap_width(platform[i].image[0]);
-                    enemy[0].speedX *= -1;
-                }
-            }
-        }
+        //Destruindo inimigo após colisão com um projétil
+        killEnemy(enemy, bullet, &nBullets, &nEnemys);
 
         //Instanciando projétil
         if(isShooting){
@@ -317,7 +291,7 @@ int main(void){
                 al_draw_bitmap(bullet[i].image[0], bullet[i].positionX, bullet[i].positionY, bullet[i].rotationY);
             }
 
-            for(i = 0; i < 2; i++){
+            for(i = 0; i < nEnemys; i++){
                 al_draw_bitmap(enemy[i].image[0], enemy[i].positionX, enemy[i].positionY, enemy[i].rotationY);
             }
 

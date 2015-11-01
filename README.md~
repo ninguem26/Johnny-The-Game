@@ -30,6 +30,8 @@ $ sudo make install
 Com a Allegro5 instalada, basta agora compilar o arquivo do projeto e executá-lo:
 
 ```
-$ gcc -Wall johnny-the-game.c -o johnny-the-game structs.h utils.h utils.c physics.h physics.c player.h player.c `pkg-config --cflags --libs allegro-5.0 allegro_image-5.0 allegro_font-5.0 allegro_ttf-5.0`
+$ gcc -Wall johnny-the-game.c -o johnny-the-game resources/structs.h resources/utils.h resources/utils.c resources/physics.h resources/physics.c resources/player.h resources/player.c resources/enemy.h resources/enemy.c `pkg-config --cflags --libs allegro-5.0 allegro_image-5.0 allegro_font-5.0 allegro_ttf-5.0`
+
+
 $ ./johnny-the-game
 ```

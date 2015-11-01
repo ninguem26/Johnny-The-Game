@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 // Arquivos do projeto
+#include "utils.h"
 #include "physics.h"
 
 bool collisionY(SPRITE collider1, SPRITE collider2, int i){
@@ -57,21 +58,13 @@ bool collisionDown(SPRITE collider1, SPRITE collider2){
 }
 
 void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets, int nPlatforms){
-    int i = 0, j, k = 0;
+    int i = 0, j;
     while(i < *nBullets){
         for(j = 0; j < nPlatforms; j++){
             if(collisionY(collider1[i], collider2[j], 0)){
                 if(collisionLeft(collider1[i], collider2[j]) || collisionRight(collider1[i], collider2[j])){
                     al_destroy_bitmap(collider1[i].image[0]); //Destruindo bitmap do projétil que colidiu
-                    k = i;
-                    while(k < *nBullets){ //Movendo projétil que colidiu para o final do array
-                        if(k < *nBullets-1){
-                            collider1[k] = collider1[k+1];
-                        }else{
-                            *nBullets = *nBullets-1;
-                        }
-                        k++;
-                    }
+                    moveToEnd(collider1, i, nBullets);        //Movendo projetil destruido para o fim do array
                 }
             }
         }
@@ -117,6 +110,33 @@ void playerCollision(SPRITE *collider1, SPRITE *collider2, float *rightSpeed, fl
             if(collider1->positionY == collider2[i].positionY - al_get_bitmap_height(collider1->image[0]) - 1){
                 *isGrounded = false;
                 *isFalling = true;
+            }
+        }
+    }
+}
+
+void enemyCollision(SPRITE *collider1, SPRITE *collider2, int nPlatforms, int nEnemys){
+    int i, j;
+
+    for(i = 0; i < nPlatforms; i++){
+        for(j = 0; j < nEnemys; j++){
+            if(collisionY(collider1[j], collider2[i], -32)){
+                if(collisionLeft(collider1[j], collider2[i])){
+                    if(collider1[j].speedX < 0){
+                        collider1[j].positionX = collider2[i].positionX;
+                    }else{
+                        collider1[j].positionX = collider2[i].positionX - al_get_bitmap_width(collider1[j].image[0]);
+                    }
+                    collider1[j].speedX *= -1;
+                }
+                if(collisionRight(collider1[j], collider2[i])){
+                    if(collider1[j].speedX > 0){
+                        collider1[j].positionX = collider2[i].positionX + al_get_bitmap_width(collider2[i].image[0]) - al_get_bitmap_width(collider1[j].image[0]);
+                    }else{
+                        collider1[j].positionX = collider2[i].positionX + al_get_bitmap_width(collider2[i].image[0]);
+                    }
+                    collider1[j].speedX *= -1;
+                }
             }
         }
     }

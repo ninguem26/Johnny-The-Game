@@ -27,6 +27,7 @@ int main(void){
 
     int nBullets = 0, bulletsOut = 0;
     int nPlatforms = 3;
+    int nEnemys = 2;
 
     const int maxFrame = 4;
     int curFrame = 0;
@@ -41,12 +42,13 @@ int main(void){
 
     SPRITE player;
     SPRITE *platform;
+    SPRITE *enemy;
     SPRITE bullet[1000];
-    SPRITE enemy[5];
 
     initializePlayer(&player);
 
     platform = (SPRITE *) malloc(sizeof(SPRITE)*nPlatforms);
+    enemy = (SPRITE *) malloc(sizeof(SPRITE)*nEnemys);
 
     platform[0].positionX = 250;
     platform[0].positionY = 500;
@@ -238,7 +240,7 @@ int main(void){
         //Colisão dos PROJETEIS com o cenário
         bulletCollision(bullet, platform, &nBullets, nPlatforms);
 
-        for(i = 0; i < 2; i++){
+        for(i = 0; i < nEnemys; i++){
             aux = 0;
             for(j = 0; j < nPlatforms; j++){
                 if(j + 1 < nPlatforms){
@@ -337,9 +339,9 @@ int main(void){
     for(i = 0; i < nBullets; i++){
         al_destroy_bitmap(bullet[i].image[0]);
     }
-    al_destroy_bitmap(platform[0].image[0]);
-    al_destroy_bitmap(platform[1].image[0]);
-    al_destroy_bitmap(platform[2].image[0]);
+    for(i = 0; i < nPlatforms; i++){
+        al_destroy_bitmap(platform[i].image[0]);
+    }
     al_destroy_font(font);
     al_destroy_event_queue(fila_eventos);
     al_destroy_display(janela);

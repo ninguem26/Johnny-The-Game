@@ -3,6 +3,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-void initializePlayer(SPRITE *player);
+void initializePlayer(PLAYER *player);
 
 #endif

@@ -20,6 +20,8 @@ ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
 
 int main(void){
+    char healthIndicator[100];
+
     bool sair = false;
     bool teclaDown[3] = {false, false, false};
     bool isGrounded = false, isFalling = false, isJumping = false, isShooting = false;
@@ -27,7 +29,7 @@ int main(void){
     bool freeMemory = false;
 
     int nBullets = 0, bulletsOut = 0;
-    int nPlatforms = 5;
+    int nPlatforms = 6;
     int nEnemys = 2;
 
     const int maxFrame = 4;
@@ -41,7 +43,7 @@ int main(void){
 
     float jumpSpeed = 5, rightSpeed = 3, leftSpeed = 3;
 
-    SPRITE player;
+    PLAYER player;
     SPRITE *platform;
     SPRITE *enemy;
     SPRITE *bullet;
@@ -71,6 +73,10 @@ int main(void){
     platform[4].positionX = 0;
     platform[4].positionY = 568;
     platform[4].rotationY = 0;
+
+    platform[5].positionX = 0;
+    platform[5].positionY = 536;
+    platform[5].rotationY = 0;
 
     enemy[0].positionX = 350;
     enemy[0].positionY = 440;
@@ -106,18 +112,19 @@ int main(void){
         return -1;
     }
 
-    player.image[0] = al_load_bitmap("sprites/Johnny/johnny_frame-1 42x54.png");
-    player.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2 42x54.png");
-    player.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3 42x54.png");
-    player.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4 42x54.png");
+    player.sprite.image[0] = al_load_bitmap("sprites/Johnny/johnny_frame-1 42x54.png");
+    player.sprite.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2 42x54.png");
+    player.sprite.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3 42x54.png");
+    player.sprite.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4 42x54.png");
     platform[0].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
     platform[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     platform[2].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
     platform[3].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     platform[4].image[0] = al_load_bitmap("sprites/tijolos 800x32.png");
+    platform[5].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
     enemy[0].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
     enemy[1].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
-    if (!player.image[0] || !platform[0].image[0] || !platform[1].image[0] || !enemy[0].image[0]){
+    if (!player.sprite.image[0] || !platform[0].image[0] || !platform[1].image[0] || !enemy[0].image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
         al_destroy_display(janela);
         return -1;
@@ -162,10 +169,10 @@ int main(void){
                 if(evento.keyboard.keycode == ALLEGRO_KEY_UP && isGrounded){
                     teclaDown[0] = true;
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
-                    player.speedX = leftSpeed;
+                    player.sprite.speedX = leftSpeed;
                     teclaDown[1] = true;
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
-                    player.speedX = rightSpeed;
+                    player.sprite.speedX = rightSpeed;
                     teclaDown[2] = true;
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_X && !isShooting){
                     isShooting = true;
@@ -174,7 +181,7 @@ int main(void){
                 if(evento.keyboard.keycode == ALLEGRO_KEY_UP){
                     teclaDown[0] = false;
                     if(isJumping){
-                        player.speedY = 0;
+                        player.sprite.speedY = 0;
                     }
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
                     teclaDown[1] = false;
@@ -190,16 +197,16 @@ int main(void){
                     enemy[i].positionX += enemy[i].speedX;
                 }
 
-                if (player.positionY + al_get_bitmap_height(player.image[0]) > getScreenHeigth()){
+                if (player.sprite.positionY + al_get_bitmap_height(player.sprite.image[0]) > getScreenHeigth()){
                     isGrounded = true;
                     isFalling = false;
-                    player.positionY = getScreenHeigth() - al_get_bitmap_height(player.image[0]);
-                    player.speedY = jumpSpeed;
+                    player.sprite.positionY = getScreenHeigth() - al_get_bitmap_height(player.sprite.image[0]);
+                    player.sprite.speedY = jumpSpeed;
                 }
                 if(isJumping){
-                    player.positionY -= player.speedY;
-                    player.speedY-=0.2;
-                    if(player.speedY <= 0){
+                    player.sprite.positionY -= player.sprite.speedY;
+                    player.sprite.speedY-=0.2;
+                    if(player.sprite.speedY <= 0){
                         isFalling = true;
                         isJumping = false;
                     }
@@ -210,16 +217,16 @@ int main(void){
                     isFalling = true;
                 }
                 if (!isGrounded && isFalling){
-                    player.positionY += player.speedY;
-                    player.speedY+=0.2;
+                    player.sprite.positionY += player.sprite.speedY;
+                    player.sprite.speedY+=0.2;
                 }
                 if (teclaDown[1]){
-                    player.positionX -= player.speedX;
-                    player.rotationY = 1;
+                    player.sprite.positionX -= player.sprite.speedX;
+                    player.sprite.rotationY = 1;
                 }
                 if (teclaDown[2]){
-                    player.positionX += player.speedX;
-                    player.rotationY = 0;
+                    player.sprite.positionX += player.sprite.speedX;
+                    player.sprite.rotationY = 0;
                 }
                 if(++frameCount >= frameDelay){
                     if(++curFrame >= maxFrame){
@@ -228,60 +235,60 @@ int main(void){
                     frameCount = 0;
                 }
 
+                if(isJumping){
+                    isGrounded = false;
+                    isFalling = false;
+                }else if(isFalling){
+                    isGrounded = false;
+                    isJumping = false;
+                }else if(isGrounded){
+                    isJumping = false;
+                    isFalling = false;
+                }
+
+                //Colisão do PLAYER com o cenário
+                playerCollision(&player.sprite, platform, &rightSpeed, &leftSpeed, &jumpSpeed, &isGrounded, &isJumping, &isFalling, nPlatforms);
+
+                //Colisão dos PROJETEIS com o cenário
+                bulletCollision(bullet, platform, &nBullets, nPlatforms);
+
+                //Colisão dos INIMIGOS com o cenário
+                enemyCollision(enemy, platform, nPlatforms, nEnemys);
+
+                //Destruindo inimigo após colisão com um projétil
+                killEnemy(enemy, bullet, &nBullets, &nEnemys);
+
+                //Instanciando projétil
+                if(isShooting){
+                    createBullet(bullet, &player.sprite, &nBullets, janela);
+                    isShooting = false;
+                }
+
+                for(i = 0; i < nBullets; i++){
+                    if(bullet[i].positionX > getScreenWidth() || bullet[i].positionX < 0){
+                        bulletsOut++;
+                    }
+                }
+
+                if(nBullets > 0 && bulletsOut >= nBullets){
+                    freeMemory = true;
+                    bulletsOut = 0;
+                }else{
+                    bulletsOut = 0;
+                }
+
+                if(freeMemory || nBullets >= (sizeof(bullet)/sizeof(SPRITE))-1){
+                    for(i = 0; i < nBullets; i++){
+                        al_destroy_bitmap(bullet[i].image[0]);
+                    }
+                    nBullets = 0;
+                    freeMemory = false;
+                }
+
                 redraw = true;
             }else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
                 sair = true;
             }
-        }
-
-        if(isJumping){
-            isGrounded = false;
-            isFalling = false;
-        }else if(isFalling){
-            isGrounded = false;
-            isJumping = false;
-        }else if(isGrounded){
-            isJumping = false;
-            isFalling = false;
-        }
-
-        //Colisão do PLAYER com o cenário
-        playerCollision(&player, platform, &rightSpeed, &leftSpeed, &jumpSpeed, &isGrounded, &isJumping, &isFalling, nPlatforms);
-
-        //Colisão dos PROJETEIS com o cenário
-        bulletCollision(bullet, platform, &nBullets, nPlatforms);
-
-        //Colisão dos INIMIGOS com o cenário
-        enemyCollision(enemy, platform, nPlatforms, nEnemys);
-
-        //Destruindo inimigo após colisão com um projétil
-        killEnemy(enemy, bullet, &nBullets, &nEnemys);
-
-        //Instanciando projétil
-        if(isShooting){
-            createBullet(bullet, &player, &nBullets, janela);
-            isShooting = false;
-        }
-
-        for(i = 0; i < nBullets; i++){
-            if(bullet[i].positionX > getScreenWidth() || bullet[i].positionX < 0){
-                bulletsOut++;
-            }
-        }
-
-        if(nBullets > 0 && bulletsOut >= nBullets){
-            freeMemory = true;
-            bulletsOut = 0;
-        }else{
-            bulletsOut = 0;
-        }
-
-        if(freeMemory || nBullets >= (sizeof(bullet)/sizeof(SPRITE))-1){
-            for(i = 0; i < nBullets; i++){
-                al_destroy_bitmap(bullet[i].image[0]);
-            }
-            nBullets = 0;
-            freeMemory = false;
         }
 
         if(redraw){
@@ -298,9 +305,11 @@ int main(void){
             for(i = 0; i < nPlatforms; i++){
                 al_draw_bitmap(platform[i].image[0], platform[i].positionX, platform[i].positionY, platform[i].rotationY);
             }
-            al_draw_bitmap(player.image[curFrame], player.positionX, player.positionY, player.rotationY);
+            al_draw_bitmap(player.sprite.image[curFrame], player.sprite.positionX, player.sprite.positionY, player.sprite.rotationY);
 
-            al_draw_text(font, al_map_rgb(255, 255, 255), 80, 30, ALLEGRO_ALIGN_CENTRE, "Vidas: ???");
+            sprintf(healthIndicator, "Health: %.0f", player.maxHealth);
+
+            al_draw_text(font, al_map_rgb(255, 255, 255), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
 
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -308,7 +317,7 @@ int main(void){
     }
 
     for(i = 0; i < maxFrame; i++){
-        al_destroy_bitmap(player.image[i]);
+        al_destroy_bitmap(player.sprite.image[i]);
     }
     for(i = 0; i < nBullets; i++){
         al_destroy_bitmap(bullet[i].image[0]);

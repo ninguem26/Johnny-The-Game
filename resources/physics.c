@@ -9,9 +9,9 @@
 #include "utils.h"
 #include "physics.h"
 
-bool collisionY(SPRITE collider1, SPRITE collider2, int i){
-    if((collider2.positionY < collider1.positionY + al_get_bitmap_height(collider1.image[0]) - i) &&
-       (collider2.positionY + al_get_bitmap_height(collider2.image[0]) > collider1.positionY + i)){
+bool collisionY(SPRITE collider1, SPRITE collider2, int base, int topo){
+    if((collider2.positionY < collider1.positionY + al_get_bitmap_height(collider1.image[0]) - base) &&
+       (collider2.positionY + al_get_bitmap_height(collider2.image[0]) > collider1.positionY + topo)){
          return true;
     }
     return false;
@@ -61,7 +61,7 @@ void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets, int nP
     int i = 0, j;
     while(i < *nBullets){
         for(j = 0; j < nPlatforms; j++){
-            if(collisionY(collider1[i], collider2[j], 0)){
+            if(collisionY(collider1[i], collider2[j], 0, 0)){
                 if(collisionLeft(collider1[i], collider2[j]) || collisionRight(collider1[i], collider2[j])){
                     al_destroy_bitmap(collider1[i].image[0]); //Destruindo bitmap do projétil que colidiu
                     moveToEnd(collider1, i, nBullets);        //Movendo projetil destruido para o fim do array
@@ -76,7 +76,7 @@ void playerCollision(SPRITE *collider1, SPRITE *collider2, float *rightSpeed, fl
                         bool *isGrounded, bool *isJumping, bool *isFalling, int nPlatforms){
     int i;
     for(i = 0; i < nPlatforms; i++){
-        if(collisionY(*collider1, collider2[i], 10)){
+        if(collisionY(*collider1, collider2[i], 10, 10)){
             if(collisionLeft(*collider1, collider2[i])){
                 collider1->positionX = collider2[i].positionX - al_get_bitmap_width(collider1->image[0]);
                 *rightSpeed = 0;
@@ -93,6 +93,7 @@ void playerCollision(SPRITE *collider1, SPRITE *collider2, float *rightSpeed, fl
             *rightSpeed = 3;
             *leftSpeed = 3;
         }
+
         if(collisionX(*collider1, collider2[i])){
             if(collisionTop(*collider1, collider2[i])){
                 collider1->positionY = collider2[i].positionY - al_get_bitmap_height(collider1->image[0]) - 1;
@@ -120,7 +121,7 @@ void enemyCollision(SPRITE *collider1, SPRITE *collider2, int nPlatforms, int nE
 
     for(i = 0; i < nPlatforms; i++){
         for(j = 0; j < nEnemys; j++){
-            if(collisionY(collider1[j], collider2[i], -32)){
+            if(collisionY(collider1[j], collider2[i], -32, -32)){
                 if(collisionLeft(collider1[j], collider2[i])){
                     if(collider1[j].speedX < 0){
                         collider1[j].positionX = collider2[i].positionX;

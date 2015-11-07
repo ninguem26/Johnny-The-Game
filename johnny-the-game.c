@@ -24,16 +24,17 @@ int main(void){
 
     bool sair = false;
     bool teclaDown[3] = {false, false, false};
-    bool isGrounded = false, isFalling = false, isJumping = false, isShooting = false;
+    bool isGrounded = false, isFalling = false, isJumping = false, isShooting = false, receiveDamage = false, canMove = true;
     bool redraw = true;
     bool freeMemory = false;
 
     int nBullets = 0, bulletsOut = 0;
-    int nPlatforms = 6;
+    int nPlatforms = 9;
     int nEnemys = 2;
 
-    const int maxFrame = 4;
-    int curFrame = 0;
+    int maxFrame = 4;
+    int curPlayerFrame = 0;
+    int curMoveFrame = 0;
     int frameCount = 0;
     int frameDelay = 7;
 
@@ -75,11 +76,23 @@ int main(void){
     platform[4].rotationY = 0;
 
     platform[5].positionX = 0;
-    platform[5].positionY = 536;
+    platform[5].positionY = 537;
     platform[5].rotationY = 0;
 
-    enemy[0].positionX = 350;
-    enemy[0].positionY = 440;
+    platform[6].positionX = 0;
+    platform[6].positionY = 0;
+    platform[6].rotationY = 0;
+
+    platform[7].positionX = 0;
+    platform[7].positionY = 0;
+    platform[7].rotationY = 0;
+
+    platform[8].positionX = 768;
+    platform[8].positionY = 0;
+    platform[8].rotationY = 0;
+
+    enemy[0].positionX = 150;
+    enemy[0].positionY = 536;
     enemy[0].rotationY = 0;
     enemy[0].speedX = -2;
 
@@ -122,6 +135,9 @@ int main(void){
     platform[3].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     platform[4].image[0] = al_load_bitmap("sprites/tijolos 800x32.png");
     platform[5].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
+    platform[6].image[0] = al_load_bitmap("sprites/tijolos 800x32.png");
+    platform[7].image[0] = al_load_bitmap("sprites/tijolos 32x600.png");
+    platform[8].image[0] = al_load_bitmap("sprites/tijolos 32x600.png");
     enemy[0].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
     enemy[1].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
     if (!player.sprite.image[0] || !platform[0].image[0] || !platform[1].image[0] || !enemy[0].image[0]){
@@ -220,17 +236,27 @@ int main(void){
                     player.sprite.positionY += player.sprite.speedY;
                     player.sprite.speedY+=0.2;
                 }
-                if (teclaDown[1]){
-                    player.sprite.positionX -= player.sprite.speedX;
-                    player.sprite.rotationY = 1;
-                }
-                if (teclaDown[2]){
-                    player.sprite.positionX += player.sprite.speedX;
-                    player.sprite.rotationY = 0;
+
+                if(canMove){
+                    if (teclaDown[1]){
+                        player.sprite.positionX -= player.sprite.speedX;
+                        player.sprite.rotationY = 1;
+                    }
+                    if (teclaDown[2]){
+                        player.sprite.positionX += player.sprite.speedX;
+                        player.sprite.rotationY = 0;
+                    }
                 }
                 if(++frameCount >= frameDelay){
-                    if(++curFrame >= maxFrame){
-                        curFrame = 0;
+                    if(++curPlayerFrame >= maxFrame){
+                        curPlayerFrame = 0;
+                    }
+                    if(!canMove){
+                        if(++curMoveFrame >= 4){
+                            curMoveFrame = 0;
+                            canMove = true;
+                            receiveDamage = false;
+                        }
                     }
                     frameCount = 0;
                 }
@@ -257,6 +283,8 @@ int main(void){
 
                 //Destruindo inimigo após colisão com um projétil
                 killEnemy(enemy, bullet, &nBullets, &nEnemys);
+
+                damageCount(&player, enemy, nEnemys, &receiveDamage, &canMove);
 
                 //Instanciando projétil
                 if(isShooting){
@@ -285,6 +313,10 @@ int main(void){
                     freeMemory = false;
                 }
 
+                if(player.actualHealth <= 0){
+                    printf("Fim de jogo\n");
+                }
+
                 redraw = true;
             }else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
                 sair = true;
@@ -305,9 +337,9 @@ int main(void){
             for(i = 0; i < nPlatforms; i++){
                 al_draw_bitmap(platform[i].image[0], platform[i].positionX, platform[i].positionY, platform[i].rotationY);
             }
-            al_draw_bitmap(player.sprite.image[curFrame], player.sprite.positionX, player.sprite.positionY, player.sprite.rotationY);
+            al_draw_bitmap(player.sprite.image[curPlayerFrame], player.sprite.positionX, player.sprite.positionY, player.sprite.rotationY);
 
-            sprintf(healthIndicator, "Health: %.0f", player.maxHealth);
+            sprintf(healthIndicator, "Health: %.0f", player.actualHealth);
 
             al_draw_text(font, al_map_rgb(255, 255, 255), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
 

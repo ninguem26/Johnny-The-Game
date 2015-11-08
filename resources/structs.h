@@ -8,7 +8,7 @@ typedef struct {
     float positionX, positionY, rotationY;
     float speedX, speedY;
     float width, height;
-    ALLEGRO_BITMAP *image[4];
+    ALLEGRO_BITMAP *image[8];
 } SPRITE;
 
 //Estrutura do PLAYER, contendo o valor da saúde do player e seu respectivo SPRITE

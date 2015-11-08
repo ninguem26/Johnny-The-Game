@@ -24,7 +24,7 @@ int main(void){
 
     bool sair = false;
     bool teclaDown[3] = {false, false, false};
-    bool isGrounded = false, isFalling = false, isJumping = false, isShooting = false, receiveDamage = false, canMove = true;
+    bool isGrounded = false, isFalling = false, isJumping = false, isShooting = false, receiveDamage = false, canMove = true, isWalking = false;
     bool redraw = true;
     bool freeMemory = false;
 
@@ -34,6 +34,7 @@ int main(void){
 
     int maxFrame = 4;
     int curPlayerFrame = 0;
+    int initFrame = 0;
     int curMoveFrame = 0;
     int frameCount = 0;
     int frameDelay = 7;
@@ -129,6 +130,10 @@ int main(void){
     player.sprite.image[1] = al_load_bitmap("sprites/Johnny/johnny_frame-2 42x54.png");
     player.sprite.image[2] = al_load_bitmap("sprites/Johnny/johnny_frame-3 42x54.png");
     player.sprite.image[3] = al_load_bitmap("sprites/Johnny/johnny_frame-4 42x54.png");
+    player.sprite.image[4] = al_load_bitmap("sprites/Johnny/johnny_walk_frame-1 42x54.png");
+    player.sprite.image[5] = al_load_bitmap("sprites/Johnny/johnny_walk_frame-2 42x54.png");
+    player.sprite.image[6] = al_load_bitmap("sprites/Johnny/johnny_walk_frame-3 42x54.png");
+    player.sprite.image[7] = al_load_bitmap("sprites/Johnny/johnny_walk_frame-4 42x54.png");
     platform[0].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
     platform[1].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
     platform[2].image[0] = al_load_bitmap("sprites/tijolos 64x32.png");
@@ -241,15 +246,34 @@ int main(void){
                     if (teclaDown[1]){
                         player.sprite.positionX -= player.sprite.speedX;
                         player.sprite.rotationY = 1;
-                    }
-                    if (teclaDown[2]){
+                        if(!isWalking){
+                            initFrame = 4;
+                            curPlayerFrame = 4;
+                            maxFrame = 8;
+                            isWalking = true;
+                        }
+                    }else if (teclaDown[2]){
                         player.sprite.positionX += player.sprite.speedX;
                         player.sprite.rotationY = 0;
+                        if(!isWalking){
+                            initFrame = 4;
+                            curPlayerFrame = 4;
+                            maxFrame = 8;
+                            isWalking = true;
+                        }
+                    }else{
+                        if(isWalking){
+                            initFrame = 0;
+                            curPlayerFrame = 0;
+                            frameDelay = 7;
+                            maxFrame = 4;
+                            isWalking = false;
+                        }
                     }
                 }
                 if(++frameCount >= frameDelay){
                     if(++curPlayerFrame >= maxFrame){
-                        curPlayerFrame = 0;
+                        curPlayerFrame = initFrame;
                     }
                     if(!canMove){
                         if(++curMoveFrame >= 4){

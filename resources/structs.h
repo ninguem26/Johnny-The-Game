@@ -1,5 +1,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 
 #ifndef STRUCTS_H
 #define STRUCTS_H
@@ -8,7 +10,7 @@ typedef struct {
     float positionX, positionY, rotationY;
     float speedX, speedY;
     float width, height;
-    ALLEGRO_BITMAP *image[8];
+    ALLEGRO_BITMAP *image[11];
 } SPRITE;
 
 //Estrutura do PLAYER, contendo o valor da saúde do player e seu respectivo SPRITE

@@ -1,5 +1,8 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+
 #include <stdio.h>
 
 #include "utils.h"
@@ -46,4 +49,97 @@ void moveToEnd(SPRITE *sprite, int index, int *length){
         }
         index++;
     }
+}
+
+void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos, ALLEGRO_TIMER **timer, ALLEGRO_FONT **font, int FPS){
+    if (!al_init()){
+        fprintf(stderr, "Falha ao inicializar a Allegro.\n");
+    }
+
+    al_init_font_addon();
+
+    if (!al_init_ttf_addon())
+    {
+        fprintf(stderr, "Falha ao inicializar add-on allegro_ttf.\n");
+    }
+
+    if (!al_init_image_addon()){
+        fprintf(stderr, "Falha ao inicializar add-on allegro_image.\n");
+    }
+
+    *janela = al_create_display(getScreenWidth(), getScreenHeigth());
+    if (!*janela){
+        fprintf(stderr, "Falha ao criar janela.\n");
+    }
+
+    if (!al_install_keyboard())
+    {
+        fprintf(stderr, "Falha ao inicializar o teclado.\n");
+    }
+
+    *timer = al_create_timer(1.0/FPS);
+    *fila_eventos = al_create_event_queue();
+    if (!*fila_eventos){
+        fprintf(stderr, "Falha ao criar fila de eventos.\n");
+        al_destroy_display(*janela);
+    }
+
+    *font = al_load_font("fonts/nobile.ttf", 18, 0);
+    if (!*font)
+    {
+        al_destroy_display(*janela);
+        fprintf(stderr, "Falha ao carregar fonte.\n");
+    }
+
+    al_register_event_source(*fila_eventos, al_get_keyboard_event_source());
+    al_register_event_source(*fila_eventos, al_get_display_event_source(*janela));
+    al_register_event_source(*fila_eventos, al_get_timer_event_source(*timer));
+
+    al_start_timer(*timer);
+}
+
+void destroy(SPRITE *player, SPRITE *platform, SPRITE *enemy, SPRITE *bullet, ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos,
+             ALLEGRO_FONT **font, int nBullets, int nEnemys, int nPlatforms){
+    int i;
+    for(i = 0; i < 10; i++){
+        al_destroy_bitmap(player->image[i]);
+    }
+    for(i = 0; i < nBullets; i++){
+        al_destroy_bitmap(bullet[i].image[0]);
+    }
+    for(i = 0; i < nPlatforms; i++){
+        al_destroy_bitmap(platform[i].image[0]);
+    }
+    for(i = 0; i < nEnemys; i++){
+        al_destroy_bitmap(enemy[i].image[0]);
+    }
+    al_destroy_font(*font);
+    al_destroy_event_queue(*fila_eventos);
+    al_destroy_display(*janela);
+}
+
+void drawScreen(PLAYER *player, SPRITE *platform, SPRITE *enemy, SPRITE *bullet, ALLEGRO_FONT **font,
+                int nBullets, int nEnemys, int nPlatforms, int curPlayerFrame){
+    int i;
+    char healthIndicator[100];
+
+    for(i = 0; i < nBullets; i++){
+        al_draw_bitmap(bullet[i].image[0], bullet[i].positionX, bullet[i].positionY, bullet[i].rotationY);
+    }
+
+    for(i = 0; i < nEnemys; i++){
+        al_draw_bitmap(enemy[i].image[0], enemy[i].positionX, enemy[i].positionY, enemy[i].rotationY);
+    }
+
+    for(i = 0; i < nPlatforms; i++){
+        al_draw_bitmap(platform[i].image[0], platform[i].positionX, platform[i].positionY, platform[i].rotationY);
+    }
+    al_draw_bitmap(player->sprite.image[curPlayerFrame], player->sprite.positionX, player->sprite.positionY, player->sprite.rotationY);
+
+    sprintf(healthIndicator, "Health: %.0f", player->actualHealth);
+
+    al_draw_text(*font, al_map_rgb(255, 255, 255), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
+
+    al_flip_display();
+    al_clear_to_color(al_map_rgb(0, 0, 20));
 }

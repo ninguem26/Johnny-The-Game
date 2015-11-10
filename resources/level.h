@@ -3,6 +3,6 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
-void loadLevel(int levelNumber, SPRITE *platform, int *nPlatforms, ALLEGRO_DISPLAY **janela);
+void loadLevel(int levelNumber, SPRITE *platform, ENEMY *enemy, int *nPlatforms, int *nEnemys, ALLEGRO_DISPLAY **janela);
 
 #endif

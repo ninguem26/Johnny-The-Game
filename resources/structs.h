@@ -19,9 +19,10 @@ typedef struct {
     SPRITE sprite;
 } PLAYER;
 
+//Estrutura do ENEMY, contendo o valor da saúde do inimigo, seu respectivo SPRITE e o dano que pode causar ao player
 typedef struct {
-    bool isActive;
+    float health, damage;
     SPRITE sprite;
-} BULLET;
+} ENEMY;
 
 #endif

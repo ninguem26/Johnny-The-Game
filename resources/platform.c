@@ -12,8 +12,6 @@ void initializePlatform(SPRITE *platform, int **nPlatforms, ALLEGRO_DISPLAY ***j
     int totalPlatforms = small + medium + big + larger;
     int i, j = 0;
 
-    platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*totalPlatforms);
-
     for(i = 0; i < small; i++){
         platform[i].image[0] = al_load_bitmap("sprites/tijolos 32x32.png");
         j++;

@@ -37,9 +37,11 @@ int main(void){
     int nBullets = 0, bulletsOut = 0;
     int nPlatforms = 9;
     int nEnemys = 2;
+    int actualLevel = 1;
 
     int maxFrame = 4;
     int curPlayerFrame = 0;
+    int curEnemyFrame = 0;
     int initFrame = 0;
     int curMoveFrame = 0;
     int frameCount = 0;
@@ -52,32 +54,20 @@ int main(void){
 
     PLAYER player;
     SPRITE *platform;
-    SPRITE *enemy;
+    ENEMY *enemy;
     SPRITE *bullet;
 
     bullet = (SPRITE *) malloc(sizeof(SPRITE)*1000);
     platform = (SPRITE *) malloc(sizeof(SPRITE)*nPlatforms);
-    enemy = (SPRITE *) malloc(sizeof(SPRITE)*nEnemys);
-
-    enemy[0].positionX = 150;
-    enemy[0].positionY = 536;
-    enemy[0].rotationY = 0;
-    enemy[0].speedX = -2;
-
-    enemy[1].positionX = 420;
-    enemy[1].positionY = 536;
-    enemy[1].rotationY = 0;
-    enemy[1].speedX = -2;
+    enemy = (ENEMY *) malloc(sizeof(ENEMY)*nEnemys);
 
     initializeAllegro(&janela, &fila_eventos, &timer, &font, FPS);
 
     initializePlayer(&player);
 
-    loadLevel(1, platform, &nPlatforms, &janela);
+    loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
 
-    enemy[0].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
-    enemy[1].image[0] = al_load_bitmap("sprites/pedra 32x32.png");
-    if (!player.sprite.image[0] || !platform[0].image[0] || !platform[1].image[0] || !enemy[0].image[0]){
+    if (!player.sprite.image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
         al_destroy_display(janela);
         return -1;
@@ -113,12 +103,41 @@ int main(void){
                     teclaDown[2] = false;
                 }
             }else if(evento.type == ALLEGRO_EVENT_TIMER){
+                if(player.sprite.positionX >= getScreenWidth()){
+                    if(actualLevel == 1){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*6);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*2);
+                        player.sprite.positionX = 0;
+                        loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 2;
+                    }else if(actualLevel == 2){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*3);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
+                        player.sprite.positionX = 0;
+                        loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 3;
+                    }
+                }else if(player.sprite.positionX + al_get_bitmap_width(player.sprite.image[0]) <= 0){
+                    if(actualLevel == 2){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
+                        player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
+                        loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 1;
+                    }else if(actualLevel == 3){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*6);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*2);
+                        player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
+                        loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 2;
+                    }
+                }
                 for(i = 0; i < nBullets; i++){
                     bullet[i].positionX += bullet[i].speedX;
                 }
 
                 for(i = 0; i < nEnemys; i++){
-                    enemy[i].positionX += enemy[i].speedX;
+                    enemy[i].sprite.positionX += enemy[i].sprite.speedX;
                 }
 
                 if (player.sprite.positionY + al_get_bitmap_height(player.sprite.image[0]) > getScreenHeigth()){
@@ -186,6 +205,9 @@ int main(void){
                             curPlayerFrame = initFrame;
                         }
                     }
+                    if(++curEnemyFrame >= 2){
+                        curEnemyFrame = 0;
+                    }
                     frameCount = 0;
                 }
 
@@ -252,7 +274,7 @@ int main(void){
 
         if(redraw){
             redraw = false;
-            drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame);
+            drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame);
         }
     }
 

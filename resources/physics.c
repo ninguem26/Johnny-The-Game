@@ -118,27 +118,40 @@ void playerCollision(SPRITE *collider1, SPRITE *collider2, float *rightSpeed, fl
     }
 }
 
-void enemyCollision(SPRITE *collider1, SPRITE *collider2, int nPlatforms, int nEnemys){
+void enemyCollision(ENEMY *collider1, SPRITE *collider2, int nPlatforms, int nEnemys){
     int i, j;
 
     for(i = 0; i < nPlatforms; i++){
         for(j = 0; j < nEnemys; j++){
-            if(collisionY(collider1[j], collider2[i], -32, -32)){
-                if(collisionLeft(collider1[j], collider2[i])){
-                    if(collider1[j].speedX < 0){
-                        collider1[j].positionX = collider2[i].positionX;
+            if(collisionY(collider1[j].sprite, collider2[i], -32, -32)){
+                if(collisionLeft(collider1[j].sprite, collider2[i])){
+                    if(collider1[j].sprite.speedX < 0){
+                        collider1[j].sprite.positionX = collider2[i].positionX;
                     }else{
-                        collider1[j].positionX = collider2[i].positionX - al_get_bitmap_width(collider1[j].image[0]);
+                        collider1[j].sprite.positionX = collider2[i].positionX - al_get_bitmap_width(collider1[j].sprite.image[0]);
                     }
-                    collider1[j].speedX *= -1;
+                    collider1[j].sprite.speedX *= -1;
                 }
-                if(collisionRight(collider1[j], collider2[i])){
-                    if(collider1[j].speedX > 0){
-                        collider1[j].positionX = collider2[i].positionX + al_get_bitmap_width(collider2[i].image[0]) - al_get_bitmap_width(collider1[j].image[0]);
+                if(collisionRight(collider1[j].sprite, collider2[i])){
+                    if(collider1[j].sprite.speedX > 0){
+                        collider1[j].sprite.positionX = collider2[i].positionX + al_get_bitmap_width(collider2[i].image[0]) - al_get_bitmap_width(collider1[j].sprite.image[0]);
                     }else{
-                        collider1[j].positionX = collider2[i].positionX + al_get_bitmap_width(collider2[i].image[0]);
+                        collider1[j].sprite.positionX = collider2[i].positionX + al_get_bitmap_width(collider2[i].image[0]);
                     }
-                    collider1[j].speedX *= -1;
+                    collider1[j].sprite.speedX *= -1;
+                }
+            }
+            if(collider1[j].sprite.speedX > 0){
+                if(collisionY(collider1[j].sprite, collider2[i], -32, 0)){
+                    collider1[j].sprite.rotationY = 1;
+                }else if(collisionY(collider1[j].sprite, collider2[i], 0, -32)){
+                    collider1[j].sprite.rotationY = 3;
+                }
+            }else{
+                if(collisionY(collider1[j].sprite, collider2[i], -32, 0)){
+                    collider1[j].sprite.rotationY = 0;
+                }else if(collisionY(collider1[j].sprite, collider2[i], 0, -32)){
+                    collider1[j].sprite.rotationY = 2;
                 }
             }
         }

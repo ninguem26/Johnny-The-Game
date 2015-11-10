@@ -31,19 +31,21 @@ void initializePlayer(PLAYER *player){
     player->sprite.image[7] = al_load_bitmap("sprites/Johnny/johnny_walk_frame-4 42x54.png");
     player->sprite.image[8] = al_load_bitmap("sprites/Johnny/johnny_jump 42x54.png");
     player->sprite.image[9] = al_load_bitmap("sprites/Johnny/johnny_fall 42x54.png");
+    player->sprite.image[10] = al_load_bitmap("sprites/Johnny/johnny_damaged 42x54.png");
 }
 
-void damageCount(PLAYER *player, SPRITE *enemy, int nEnemys, bool *receiveDamage, bool *canMove, int *curPlayerFrame){
-    int i;
+void damageCount(PLAYER *player, ENEMY *enemy, int nEnemys, bool *receiveDamage, bool *canMove, int *curPlayerFrame){
+    int i, j;
     for(i = 0; i < nEnemys; i++){
-        if(collisionY(player->sprite, enemy[i], 0, 0) && collisionX(player->sprite, enemy[i]) && !*receiveDamage){
+        if(collisionY(player->sprite, enemy[i].sprite, 0, 0) && collisionX(player->sprite, enemy[i].sprite) && !*receiveDamage){
             *receiveDamage = true;
+            j = i;
         }
     }
 
     if(*receiveDamage && *canMove){
-        *curPlayerFrame = 9;
+        *curPlayerFrame = 10;
         *canMove = false;
-        player->actualHealth--;
+        player->actualHealth -= enemy[j].damage;
     }
 }

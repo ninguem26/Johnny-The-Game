@@ -51,6 +51,18 @@ void moveToEnd(SPRITE *sprite, int index, int *length){
     }
 }
 
+//Move para o fim do array um elemento de indice indicado pelo parâmetro 'index' no array '*sprite'
+void moveEnemyToEnd(ENEMY *enemy, int index, int *length){
+    while(index < *length){
+        if(index < *length-1){
+            enemy[index] = enemy[index+1];
+        }else{
+            *length = *length-1;
+        }
+        index++;
+    }
+}
+
 void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos, ALLEGRO_TIMER **timer, ALLEGRO_FONT **font, int FPS){
     if (!al_init()){
         fprintf(stderr, "Falha ao inicializar a Allegro.\n");
@@ -98,7 +110,7 @@ void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_even
     al_start_timer(*timer);
 }
 
-void destroy(SPRITE *player, SPRITE *platform, SPRITE *enemy, SPRITE *bullet, ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos,
+void destroy(SPRITE *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos,
              ALLEGRO_FONT **font, int nBullets, int nEnemys, int nPlatforms){
     int i;
     for(i = 0; i < 10; i++){
@@ -111,15 +123,16 @@ void destroy(SPRITE *player, SPRITE *platform, SPRITE *enemy, SPRITE *bullet, AL
         al_destroy_bitmap(platform[i].image[0]);
     }
     for(i = 0; i < nEnemys; i++){
-        al_destroy_bitmap(enemy[i].image[0]);
+        al_destroy_bitmap(enemy[i].sprite.image[0]);
+        al_destroy_bitmap(enemy[i].sprite.image[1]);
     }
     al_destroy_font(*font);
     al_destroy_event_queue(*fila_eventos);
     al_destroy_display(*janela);
 }
 
-void drawScreen(PLAYER *player, SPRITE *platform, SPRITE *enemy, SPRITE *bullet, ALLEGRO_FONT **font,
-                int nBullets, int nEnemys, int nPlatforms, int curPlayerFrame){
+void drawScreen(PLAYER *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALLEGRO_FONT **font,
+                int nBullets, int nEnemys, int nPlatforms, int curPlayerFrame, int curEnemyFrame){
     int i;
     char healthIndicator[100];
 
@@ -128,7 +141,7 @@ void drawScreen(PLAYER *player, SPRITE *platform, SPRITE *enemy, SPRITE *bullet,
     }
 
     for(i = 0; i < nEnemys; i++){
-        al_draw_bitmap(enemy[i].image[0], enemy[i].positionX, enemy[i].positionY, enemy[i].rotationY);
+        al_draw_bitmap(enemy[i].sprite.image[curEnemyFrame], enemy[i].sprite.positionX, enemy[i].sprite.positionY, enemy[i].sprite.rotationY);
     }
 
     for(i = 0; i < nPlatforms; i++){

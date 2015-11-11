@@ -3,6 +3,8 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 // Bibliotecas do C
 #include <stdio.h>
@@ -20,6 +22,7 @@ ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
+ALLEGRO_SAMPLE *sample = NULL;
 
 int main(void){
     bool sair = false;
@@ -33,11 +36,15 @@ int main(void){
          isWalking = false;
     bool redraw = true;
     bool freeMemory = false;
+    bool gameStarted = false;
+    bool gameOver = false;
 
     int nBullets = 0, bulletsOut = 0;
     int nPlatforms = 9;
     int nEnemys = 2;
     int actualLevel = 1;
+    int cabecalho = 1, startText = 1;
+    int mouseX, mouseY;
 
     int maxFrame = 4;
     int curPlayerFrame = 0;
@@ -56,12 +63,15 @@ int main(void){
     SPRITE *platform;
     ENEMY *enemy;
     SPRITE *bullet;
+    SPRITE botao_start, botao_sair, area_central;
 
     bullet = (SPRITE *) malloc(sizeof(SPRITE)*1000);
     platform = (SPRITE *) malloc(sizeof(SPRITE)*nPlatforms);
     enemy = (ENEMY *) malloc(sizeof(ENEMY)*nEnemys);
 
     initializeAllegro(&janela, &fila_eventos, &timer, &font, FPS);
+
+    initializeMenu(&botao_start, &botao_sair, &area_central, &janela);
 
     initializePlayer(&player);
 
@@ -79,19 +89,43 @@ int main(void){
             ALLEGRO_EVENT evento;
             al_wait_for_event(fila_eventos, &evento);
 
-            if (evento.type == ALLEGRO_EVENT_KEY_DOWN){
-                if(evento.keyboard.keycode == ALLEGRO_KEY_UP && isGrounded){
-                    teclaDown[0] = true;
-                }else if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
-                    player.sprite.speedX = leftSpeed;
-                    teclaDown[1] = true;
-                }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
-                    player.sprite.speedX = rightSpeed;
-                    teclaDown[2] = true;
-                }else if(evento.keyboard.keycode == ALLEGRO_KEY_X && !isShooting){
-                    isShooting = true;
+            if(evento.type == ALLEGRO_EVENT_KEY_DOWN){
+                if(gameStarted){
+                    if(evento.keyboard.keycode == ALLEGRO_KEY_UP && isGrounded){
+                        teclaDown[0] = true;
+                    }else if(evento.keyboard.keycode == ALLEGRO_KEY_LEFT){
+                        player.sprite.speedX = leftSpeed;
+                        teclaDown[1] = true;
+                    }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
+                        player.sprite.speedX = rightSpeed;
+                        teclaDown[2] = true;
+                    }else if(evento.keyboard.keycode == ALLEGRO_KEY_X && !isShooting){
+                        isShooting = true;
+                    }else if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
+                        gameStarted = false;
+                        teclaDown[0] = false;
+                        teclaDown[1] = false;
+                        teclaDown[2] = false;
+                        cabecalho = 2;
+                        startText = 2;
+                    }
+                }else{
+                    if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
+                        gameStarted = true;
+                        if(gameOver){
+                            player.sprite.positionY = 160;
+                            player.sprite.positionX = 10;
+                            player.sprite.rotationY = 0;
+                            player.actualHealth = player.maxHealth;
+                            platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
+                            enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                            loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                            actualLevel = 1;
+                            gameOver = false;
+                        }
+                    }
                 }
-            }else if(evento.type == ALLEGRO_EVENT_KEY_UP){
+            }else if(evento.type == ALLEGRO_EVENT_KEY_UP && gameStarted){
                 if(evento.keyboard.keycode == ALLEGRO_KEY_UP){
                     teclaDown[0] = false;
                     if(isJumping){
@@ -102,20 +136,26 @@ int main(void){
                 }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
                     teclaDown[2] = false;
                 }
-            }else if(evento.type == ALLEGRO_EVENT_TIMER){
+            }else if(evento.type == ALLEGRO_EVENT_TIMER && gameStarted){
                 if(player.sprite.positionX >= getScreenWidth()){
                     if(actualLevel == 1){
-                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*6);
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*5);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*2);
                         player.sprite.positionX = 0;
                         loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 2;
                     }else if(actualLevel == 2){
-                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*3);
-                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*9);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
                         player.sprite.positionX = 0;
                         loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 3;
+                    }else if(actualLevel == 3){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*5);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*4);
+                        player.sprite.positionX = 0;
+                        loadLevel(4, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 4;
                     }
                 }else if(player.sprite.positionX + al_get_bitmap_width(player.sprite.image[0]) <= 0){
                     if(actualLevel == 2){
@@ -125,11 +165,17 @@ int main(void){
                         loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 1;
                     }else if(actualLevel == 3){
-                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*6);
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*5);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*2);
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
                         loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 2;
+                    }else if(actualLevel == 4){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*9);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
+                        player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
+                        loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 3;
                     }
                 }
                 for(i = 0; i < nBullets; i++){
@@ -263,10 +309,59 @@ int main(void){
                 }
 
                 if(player.actualHealth <= 0){
-                    printf("Fim de jogo\n");
+                    gameStarted = false;
+                    gameOver = true;
+                    teclaDown[0] = false;
+                    teclaDown[1] = false;
+                    teclaDown[2] = false;
+                    isJumping = false;
+                    isGrounded = false;
+                    isFalling = true;
+                    cabecalho = 3;
+                    startText = 3;
                 }
 
                 redraw = true;
+            }else if (evento.type == ALLEGRO_EVENT_MOUSE_AXES){
+                mouseX = evento.mouse.x;
+                mouseY = evento.mouse.y;
+                // Verificamos se ele está sobre a região do retângulo central
+                if (interactButton(botao_start, mouseX, mouseY)){
+                    al_set_target_bitmap(botao_start.image[0]);
+                    al_clear_to_color(al_map_rgb(213, 243, 255));
+                    al_set_target_bitmap(al_get_backbuffer(janela));
+                }else{
+                    al_set_target_bitmap(botao_start.image[0]);
+                    al_clear_to_color(al_map_rgb(47, 104, 127));
+                    al_set_target_bitmap(al_get_backbuffer(janela));
+                }
+                if (interactButton(botao_sair, mouseX, mouseY)){
+                    al_set_target_bitmap(botao_sair.image[0]);
+                    al_clear_to_color(al_map_rgb(213, 243, 255));
+                    al_set_target_bitmap(al_get_backbuffer(janela));
+                }else{
+                    al_set_target_bitmap(botao_sair.image[0]);
+                    al_clear_to_color(al_map_rgb(47, 104, 127));
+                    al_set_target_bitmap(al_get_backbuffer(janela));
+                }
+            }else if(evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP){
+                if (interactButton(botao_start, mouseX, mouseY)){
+                    gameStarted = true;
+                    if(gameOver){
+                        player.sprite.positionY = 160;
+                        player.sprite.positionX = 10;
+                        player.sprite.rotationY = 0;
+                        player.actualHealth = player.maxHealth;
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 1;
+                        gameOver = false;
+                    }
+                }
+                if (interactButton(botao_sair, mouseX, mouseY)){
+                    sair = 1;
+                }
             }else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
                 sair = true;
             }
@@ -275,6 +370,9 @@ int main(void){
         if(redraw){
             redraw = false;
             drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame);
+        }
+        if(!gameStarted){
+            drawMenu(botao_start, botao_sair, area_central, font, cabecalho, startText);
         }
     }
 

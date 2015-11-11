@@ -2,6 +2,8 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #include <stdio.h>
 
@@ -84,6 +86,18 @@ void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_even
         fprintf(stderr, "Falha ao criar janela.\n");
     }
 
+    al_set_window_title(*janela, "Johnny - The Game");
+
+    if (!al_install_mouse()){
+        fprintf(stderr, "Falha ao inicializar o mouse.\n");
+        al_destroy_display(*janela);
+    }
+
+    if (!al_set_system_mouse_cursor(*janela, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT)){
+        fprintf(stderr, "Falha ao atribuir ponteiro do mouse.\n");
+        al_destroy_display(*janela);
+    }
+
     if (!al_install_keyboard())
     {
         fprintf(stderr, "Falha ao inicializar o teclado.\n");
@@ -106,6 +120,7 @@ void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_even
     al_register_event_source(*fila_eventos, al_get_keyboard_event_source());
     al_register_event_source(*fila_eventos, al_get_display_event_source(*janela));
     al_register_event_source(*fila_eventos, al_get_timer_event_source(*timer));
+    al_register_event_source(*fila_eventos, al_get_mouse_event_source());
 
     al_start_timer(*timer);
 }
@@ -155,4 +170,73 @@ void drawScreen(PLAYER *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, 
 
     al_flip_display();
     al_clear_to_color(al_map_rgb(0, 0, 20));
+}
+
+void initializeMenu(SPRITE *botao_start, SPRITE *botao_sair, SPRITE *area_central, ALLEGRO_DISPLAY **janela){
+    botao_start->image[0] = al_create_bitmap(200, 50);
+    botao_start->positionX = getScreenWidth()/2 - al_get_bitmap_width(botao_start->image[0])/2;
+    botao_start->positionY = 200;
+    botao_sair->image[0] = al_create_bitmap(200, 50);
+    botao_sair->positionX = getScreenWidth()/2 - al_get_bitmap_width(botao_sair->image[0])/2;
+    botao_sair->positionY = 300;
+    area_central->image[0] = al_create_bitmap(getScreenWidth()/2, getScreenHeigth()/2);
+    area_central->positionX = getScreenWidth()/2 - al_get_bitmap_width(area_central->image[0])/2;
+    area_central->positionY = getScreenHeigth()/2 - al_get_bitmap_height(area_central->image[0])/2;
+    al_set_target_bitmap(area_central->image[0]);
+    al_clear_to_color(al_map_rgb(68, 110, 127));
+
+    al_set_target_bitmap(botao_start->image[0]);
+    al_clear_to_color(al_map_rgb(47, 104, 127));
+
+    al_set_target_bitmap(botao_sair->image[0]);
+    al_clear_to_color(al_map_rgb(47, 104, 127));
+    al_set_target_bitmap(al_get_backbuffer(*janela));
+    if (!botao_start->image[0] || !botao_sair->image[0] || !area_central->image[0])
+    {
+        fprintf(stderr, "Falha ao criar botão de saída.\n");
+        al_destroy_display(*janela);
+    }
+}
+
+void drawMenu(SPRITE botao_start, SPRITE botao_sair, SPRITE area_central, ALLEGRO_FONT *font, int cabecalho, int startText){
+    char mensagem1[100];
+    char mensagem2[100];
+    ALLEGRO_FONT *fonte = NULL;
+    fonte = al_load_font("fonts/nobile.ttf", 48, 0);
+    al_draw_bitmap(area_central.image[0], area_central.positionX, area_central.positionY, 0);
+    al_draw_bitmap(botao_start.image[0], botao_start.positionX, botao_start.positionY, 0);
+    al_draw_bitmap(botao_sair.image[0], botao_sair.positionX, botao_sair.positionY, 0);
+
+    if(cabecalho == 1){
+        strcpy(mensagem1, "Johnny - The Game");
+    }else if(cabecalho == 2){
+        strcpy(mensagem1, "Pause");
+    }else{
+        strcpy(mensagem1, "Game Over");
+    }
+
+    if(startText == 1){
+        strcpy(mensagem2, "START");
+    }else if(startText == 2){
+        strcpy(mensagem2, "CONTINUE");
+    }else{
+        strcpy(mensagem2, "TRY AGAIN");
+    }
+
+    al_draw_text(font, al_map_rgb(255, 255, 255), botao_start.positionX + al_get_bitmap_width(botao_start.image[0])/2, botao_start.positionY + al_get_bitmap_height(botao_start.image[0])/4, ALLEGRO_ALIGN_CENTRE, mensagem2);
+    al_draw_text(font, al_map_rgb(255, 255, 255), botao_sair.positionX + al_get_bitmap_width(botao_sair.image[0])/2, botao_sair.positionY + al_get_bitmap_height(botao_sair.image[0])/4, ALLEGRO_ALIGN_CENTRE, "QUIT");
+    al_draw_text(fonte, al_map_rgb(255, 255, 255), getScreenWidth()/2, getScreenHeigth()/8, ALLEGRO_ALIGN_CENTRE, mensagem1);
+
+    al_flip_display();
+    al_clear_to_color(al_map_rgb(0, 0, 20));
+}
+
+bool interactButton(SPRITE button, int mouseX, int mouseY){
+    if (mouseX >= button.positionX &&
+        mouseX <= button.positionX + al_get_bitmap_width(button.image[0]) &&
+        mouseY >= button.positionY &&
+        mouseY <= button.positionY + al_get_bitmap_height(button.image[0])){
+        return true;
+    }
+    return false;
 }

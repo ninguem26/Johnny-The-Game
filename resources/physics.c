@@ -63,11 +63,9 @@ void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets, int nP
     int i = 0, j;
     while(i < *nBullets){
         for(j = 0; j < nPlatforms; j++){
-            if(collisionY(collider1[i], collider2[j], 0, 0)){
-                if(collisionLeft(collider1[i], collider2[j]) || collisionRight(collider1[i], collider2[j])){
-                    al_destroy_bitmap(collider1[i].image[0]); //Destruindo bitmap do projétil que colidiu
-                    moveToEnd(collider1, i, nBullets);        //Movendo projetil destruido para o fim do array
-                }
+            if(collisionY(collider1[i], collider2[j], 0, 0) && collisionX(collider1[i], collider2[j])){
+                al_destroy_bitmap(collider1[i].image[0]); //Destruindo bitmap do projétil que colidiu
+                moveToEnd(collider1, i, nBullets);        //Movendo projetil destruido para o fim do array
             }
         }
         i++;
@@ -142,16 +140,16 @@ void enemyCollision(ENEMY *collider1, SPRITE *collider2, int nPlatforms, int nEn
                 }
             }
             if(collider1[j].sprite.speedX > 0){
-                if(collisionY(collider1[j].sprite, collider2[i], -32, 0)){
-                    collider1[j].sprite.rotationY = 1;
-                }else if(collisionY(collider1[j].sprite, collider2[i], 0, -32)){
+                if(collisionY(collider1[j].sprite, collider2[i], 0, -32)){
                     collider1[j].sprite.rotationY = 3;
+                }else if(collisionY(collider1[j].sprite, collider2[i], -32, 0)){
+                    collider1[j].sprite.rotationY = 1;
                 }
             }else{
-                if(collisionY(collider1[j].sprite, collider2[i], -32, 0)){
+              if(collisionY(collider1[j].sprite, collider2[i], 0, -32)){
+                  collider1[j].sprite.rotationY = 2;
+              }else if(collisionY(collider1[j].sprite, collider2[i], -32, 0)){
                     collider1[j].sprite.rotationY = 0;
-                }else if(collisionY(collider1[j].sprite, collider2[i], 0, -32)){
-                    collider1[j].sprite.rotationY = 2;
                 }
             }
         }

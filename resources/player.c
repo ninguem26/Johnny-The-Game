@@ -13,8 +13,8 @@
 #include "player.h"
 
 void initializePlayer(PLAYER *player){
-    player->sprite.positionX = 50;
-    player->sprite.positionY = -100;
+    player->sprite.positionX = 10;
+    player->sprite.positionY = 160;
     player->sprite.rotationY = 0;
     player->sprite.speedX = 3;
     player->sprite.speedY = 5;

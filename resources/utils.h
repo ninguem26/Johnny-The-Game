@@ -17,7 +17,7 @@ void destroy(SPRITE *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALL
              ALLEGRO_FONT **font, int nBullets, int nEnemys, int nPlatforms);
 
 void initializeMenu(SPRITE *botao_start, SPRITE *botao_sair, SPRITE *area_central, ALLEGRO_DISPLAY **janela);
-void drawMenu(SPRITE botao_start, SPRITE botao_sair, SPRITE area_central, ALLEGRO_FONT *font, int cabecalho, int startText);
+void drawMenu(SPRITE botao_start, SPRITE botao_sair, SPRITE area_central, ALLEGRO_FONT *font, ALLEGRO_FONT *fonte, int cabecalho, int startText);
 
 bool interactButton(SPRITE button, int mouseX, int mouseY);
 

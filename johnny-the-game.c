@@ -22,7 +22,10 @@ ALLEGRO_DISPLAY *janela = NULL;
 ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
-ALLEGRO_SAMPLE *sample = NULL;
+ALLEGRO_FONT *fonte = NULL;
+ALLEGRO_SAMPLE *menuSong = NULL;
+ALLEGRO_SAMPLE *menuMusic = NULL;
+ALLEGRO_SAMPLE *gameMusic = NULL;
 
 int main(void){
     bool sair = false;
@@ -38,6 +41,7 @@ int main(void){
     bool freeMemory = false;
     bool gameStarted = false;
     bool gameOver = false;
+    bool playingGameMusic = false, playingMenuMusic = true;
 
     int nBullets = 0, bulletsOut = 0;
     int nPlatforms = 9;
@@ -75,6 +79,19 @@ int main(void){
 
     initializePlayer(&player);
 
+    fonte = al_load_font("fonts/nobile.ttf", 48, 0);
+
+    menuSong = al_load_sample("songs/here-is-johnny.ogg");
+    menuMusic = al_load_sample("songs/be-good-johnny.ogg");
+    gameMusic = al_load_sample("songs/johnny-be-good.ogg");
+    if (!menuMusic || !menuSong || !gameMusic){
+        fprintf(stderr, "Falha ao carregar sample.\n");
+        al_destroy_display(janela);
+        return false;
+    }
+
+    al_play_sample(menuSong, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+    al_play_sample(menuMusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
     loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
 
     if (!player.sprite.image[0]){
@@ -112,6 +129,14 @@ int main(void){
                 }else{
                     if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
                         gameStarted = true;
+                        if(playingMenuMusic){
+                            al_stop_samples();
+                            playingMenuMusic = false;
+                        }
+                        if(!playingGameMusic){
+                            al_play_sample(gameMusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+                            playingGameMusic = true;
+                        }
                         if(gameOver){
                             player.sprite.positionY = 160;
                             player.sprite.positionX = 10;
@@ -347,6 +372,14 @@ int main(void){
             }else if(evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP){
                 if (interactButton(botao_start, mouseX, mouseY)){
                     gameStarted = true;
+                    if(playingMenuMusic){
+                        al_stop_samples();
+                        playingMenuMusic = false;
+                    }
+                    if(!playingGameMusic){
+                        al_play_sample(gameMusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+                        playingGameMusic = true;
+                    }
                     if(gameOver){
                         player.sprite.positionY = 160;
                         player.sprite.positionX = 10;
@@ -372,10 +405,12 @@ int main(void){
             drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame);
         }
         if(!gameStarted){
-            drawMenu(botao_start, botao_sair, area_central, font, cabecalho, startText);
+            drawMenu(botao_start, botao_sair, area_central, font, fonte, cabecalho, startText);
         }
     }
 
+    al_destroy_sample(menuSong);
+    al_destroy_sample(menuMusic);
     destroy(&player.sprite, platform, enemy, bullet, &janela, &fila_eventos, &font, nBullets, nEnemys, nPlatforms);
 
     return 0;

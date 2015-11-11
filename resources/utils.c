@@ -98,6 +98,21 @@ void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_even
         al_destroy_display(*janela);
     }
 
+    if (!al_install_audio())
+    {
+        fprintf(stderr, "Falha ao inicializar áudio.\n");
+    }
+
+    if (!al_init_acodec_addon())
+    {
+        fprintf(stderr, "Falha ao inicializar codecs de áudio.\n");
+    }
+
+    if (!al_reserve_samples(3))
+    {
+        fprintf(stderr, "Falha ao alocar canais de áudio.\n");
+    }
+
     if (!al_install_keyboard())
     {
         fprintf(stderr, "Falha ao inicializar o teclado.\n");
@@ -198,11 +213,10 @@ void initializeMenu(SPRITE *botao_start, SPRITE *botao_sair, SPRITE *area_centra
     }
 }
 
-void drawMenu(SPRITE botao_start, SPRITE botao_sair, SPRITE area_central, ALLEGRO_FONT *font, int cabecalho, int startText){
+void drawMenu(SPRITE botao_start, SPRITE botao_sair, SPRITE area_central, ALLEGRO_FONT *font, ALLEGRO_FONT *fonte, int cabecalho, int startText){
     char mensagem1[100];
     char mensagem2[100];
-    ALLEGRO_FONT *fonte = NULL;
-    fonte = al_load_font("fonts/nobile.ttf", 48, 0);
+
     al_draw_bitmap(area_central.image[0], area_central.positionX, area_central.positionY, 0);
     al_draw_bitmap(botao_start.image[0], botao_start.positionX, botao_start.positionY, 0);
     al_draw_bitmap(botao_sair.image[0], botao_sair.positionX, botao_sair.positionY, 0);

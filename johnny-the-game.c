@@ -26,6 +26,7 @@ ALLEGRO_FONT *fonte = NULL;
 ALLEGRO_SAMPLE *menuSong = NULL;
 ALLEGRO_SAMPLE *menuMusic = NULL;
 ALLEGRO_SAMPLE *gameMusic = NULL;
+ALLEGRO_BITMAP *background = NULL;
 
 int main(void){
     bool sair = false;
@@ -42,6 +43,7 @@ int main(void){
     bool gameStarted = false;
     bool gameOver = false;
     bool playingGameMusic = false, playingMenuMusic = true;
+    bool canShoot = true;
 
     int nBullets = 0, bulletsOut = 0;
     int nPlatforms = 9;
@@ -55,6 +57,7 @@ int main(void){
     int curEnemyFrame = 0;
     int initFrame = 0;
     int curMoveFrame = 0;
+    int curShootFrame = 0;
     int frameCount = 0;
     int frameDelay = 7;
 
@@ -78,6 +81,13 @@ int main(void){
     initializeMenu(&botao_start, &botao_sair, &area_central, &janela);
 
     initializePlayer(&player);
+
+    background = al_load_bitmap("sprites/tijolos 800x600.png");
+    if (!background){
+        fprintf(stderr, "Falha ao carregar imagem de fundo.\n");
+        al_destroy_display(janela);
+        return false;
+    }
 
     fonte = al_load_font("fonts/nobile.ttf", 48, 0);
 
@@ -116,8 +126,9 @@ int main(void){
                     }else if(evento.keyboard.keycode == ALLEGRO_KEY_RIGHT){
                         player.sprite.speedX = rightSpeed;
                         teclaDown[2] = true;
-                    }else if(evento.keyboard.keycode == ALLEGRO_KEY_X && !isShooting){
+                    }else if(evento.keyboard.keycode == ALLEGRO_KEY_X && canShoot){
                         isShooting = true;
+                        canShoot = false;
                     }else if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
                         gameStarted = false;
                         teclaDown[0] = false;
@@ -170,7 +181,7 @@ int main(void){
                         loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 2;
                     }else if(actualLevel == 2){
-                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*9);
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*11);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
                         player.sprite.positionX = 0;
                         loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
@@ -196,9 +207,26 @@ int main(void){
                         loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 2;
                     }else if(actualLevel == 4){
-                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*9);
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*11);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
+                        loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 3;
+                    }
+                }
+                if(player.sprite.positionY + al_get_bitmap_height(player.sprite.image[0]) <= 0){
+                    if(actualLevel == 3){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        player.sprite.positionY = 514;
+                        loadLevel(5, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 5;
+                    }
+                }else if(player.sprite.positionY >= getScreenHeigth()){
+                    if(actualLevel == 5){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*11);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
+                        player.sprite.positionY = 0;
                         loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 3;
                     }
@@ -211,12 +239,6 @@ int main(void){
                     enemy[i].sprite.positionX += enemy[i].sprite.speedX;
                 }
 
-                if (player.sprite.positionY + al_get_bitmap_height(player.sprite.image[0]) > getScreenHeigth()){
-                    isGrounded = true;
-                    isFalling = false;
-                    player.sprite.positionY = getScreenHeigth() - al_get_bitmap_height(player.sprite.image[0]);
-                    player.sprite.speedY = jumpSpeed;
-                }
                 if(isJumping){
                     player.sprite.positionY -= player.sprite.speedY;
                     player.sprite.speedY-=0.2;
@@ -278,6 +300,12 @@ int main(void){
                     }
                     if(++curEnemyFrame >= 2){
                         curEnemyFrame = 0;
+                    }
+                    if(!canShoot){
+                        if(++curShootFrame >= 6){
+                            curShootFrame = 0;
+                            canShoot = true;
+                        }
                     }
                     frameCount = 0;
                 }
@@ -344,6 +372,8 @@ int main(void){
                     isFalling = true;
                     cabecalho = 3;
                     startText = 3;
+                    al_stop_samples();
+                    playingGameMusic = false;
                 }
 
                 redraw = true;
@@ -402,6 +432,7 @@ int main(void){
 
         if(redraw){
             redraw = false;
+            al_draw_bitmap(background, 0, 0, 0);
             drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame);
         }
         if(!gameStarted){
@@ -411,6 +442,7 @@ int main(void){
 
     al_destroy_sample(menuSong);
     al_destroy_sample(menuMusic);
+    al_destroy_sample(gameMusic);
     destroy(&player.sprite, platform, enemy, bullet, &janela, &fila_eventos, &font, nBullets, nEnemys, nPlatforms);
 
     return 0;

@@ -207,15 +207,68 @@ void loadLevel(int levelNumber, SPRITE *platform, ENEMY *enemy, int *nPlatforms,
         enemy[3].health = 4;
         enemy[3].damage = 2;
     }else if(levelNumber == 5){
+        initializePlatform(platform, &nPlatforms, &janela, 0, 4, 2, 6);
+        initializeEnemy(enemy, &nEnemys, &janela, 0, 0, 0);
+
+        //Definindo plataformas
+        platform[0].positionX = 1*32;
+        platform[0].positionY = 440;
+        platform[0].rotationY = 0;
+
+        platform[1].positionX = 6*32;
+        platform[1].positionY = 386;
+        platform[1].rotationY = 0;
+
+        platform[2].positionX = 22*32;
+        platform[2].positionY = 256;
+        platform[2].rotationY = 0;
+
+        platform[3].positionX = 17*32;
+        platform[3].positionY = 192;
+        platform[3].rotationY = 0;
+
+        platform[4].positionX = 0*32;
+        platform[4].positionY = 5*32;
+        platform[4].rotationY = 0;
+
+        platform[5].positionX = 24*32;
+        platform[5].positionY = 0*32;
+        platform[5].rotationY = 0;
+
+        platform[6].positionX = -10*32;
+        platform[6].positionY = 159;
+        platform[6].rotationY = 0;
+
+        platform[7].positionX = 14*32;
+        platform[7].positionY = 321;
+        platform[7].rotationY = 0;
+
+        platform[8].positionX = 12*32;
+        platform[8].positionY = 353;
+        platform[8].rotationY = 0;
+
+        platform[9].positionX = -11*32;
+        platform[9].positionY = 504;
+        platform[9].rotationY = 0;
+
+        platform[10].positionX = -9*32;
+        platform[10].positionY = 536;
+        platform[10].rotationY = 0;
+
+        platform[11].positionX = -5*32;
+        platform[11].positionY = 568;
+        platform[11].rotationY = 0;
+        //Definindo inimigos
+    }else if(levelNumber == 6){
         initializePlatform(platform, &nPlatforms, &janela, 0, 0, 1, 1);
         initializeEnemy(enemy, &nEnemys, &janela, 0, 0, 0);
 
         //Definindo plataformas
-        platform[0].positionX = 24*32;
+        platform[0].positionX = 0*32;
         platform[0].positionY = 0*32;
         platform[0].rotationY = 0;
 
-        platform[1].positionX = -5*32;
+        platform[1].positionX = 5*32;
         platform[1].positionY = 568;
         platform[1].rotationY = 0;
 

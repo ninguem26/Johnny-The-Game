@@ -192,6 +192,12 @@ int main(void){
                         player.sprite.positionX = 0;
                         loadLevel(4, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 4;
+                    }else if(actualLevel == 6){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*12);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        player.sprite.positionX = 0;
+                        loadLevel(5, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 5;
                     }
                 }else if(player.sprite.positionX + al_get_bitmap_width(player.sprite.image[0]) <= 0){
                     if(actualLevel == 2){
@@ -212,11 +218,17 @@ int main(void){
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
                         loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 3;
+                    }else if(actualLevel == 5){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
+                        loadLevel(6, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 6;
                     }
                 }
                 if(player.sprite.positionY + al_get_bitmap_height(player.sprite.image[0]) <= 0){
                     if(actualLevel == 3){
-                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*12);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
                         player.sprite.positionY = 514;
                         loadLevel(5, platform, enemy, &nPlatforms, &nEnemys, &janela);

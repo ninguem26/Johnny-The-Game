@@ -194,7 +194,7 @@ int main(void){
                         actualLevel = 4;
                     }else if(actualLevel == 6){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*12);
-                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
                         player.sprite.positionX = 0;
                         loadLevel(5, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 5;
@@ -219,9 +219,11 @@ int main(void){
                         loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 3;
                     }else if(actualLevel == 5){
-                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
-                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*3);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*2);
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
+                        isFalling = true;
+                        isGrounded = false;
                         loadLevel(6, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 6;
                     }
@@ -229,7 +231,7 @@ int main(void){
                 if(player.sprite.positionY + al_get_bitmap_height(player.sprite.image[0]) <= 0){
                     if(actualLevel == 3){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*12);
-                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
                         player.sprite.positionY = 514;
                         loadLevel(5, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 5;
@@ -241,6 +243,12 @@ int main(void){
                         player.sprite.positionY = 0;
                         loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
                         actualLevel = 3;
+                    }else if(actualLevel == 6){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*7);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        player.sprite.positionY = 0;
+                        loadLevel(7, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        actualLevel = 7;
                     }
                 }
                 for(i = 0; i < nBullets; i++){

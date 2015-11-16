@@ -68,6 +68,10 @@ void bulletCollision(SPRITE *collider1, SPRITE *collider2, int *nBullets, int nP
                 moveToEnd(collider1, i, nBullets);        //Movendo projetil destruido para o fim do array
             }
         }
+        if(collider1[i].positionX + al_get_bitmap_width(collider1[i].image[0]) >= getScreenWidth() || collider1[i].positionX <= 0){
+            al_destroy_bitmap(collider1[i].image[0]); //Destruindo bitmap do projétil que colidiu
+            moveToEnd(collider1, i, nBullets);        //Movendo projetil destruido para o fim do array
+        }
         i++;
     }
 }

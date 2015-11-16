@@ -38,16 +38,17 @@ int main(void){
          receiveDamage = false,
          canMove = true,
          isWalking = false;
-    bool redraw = true;
-    bool freeMemory = false;
+    bool redraw = false;
+    //bool freeMemory = false;
     bool gameStarted = false;
     bool gameOver = false;
     bool playingGameMusic = false, playingMenuMusic = true;
     bool canShoot = true;
+    bool endGame = false;
 
-    int nBullets = 0, bulletsOut = 0;
-    int nPlatforms = 9;
-    int nEnemys = 2;
+    int nBullets = 0 /**, bulletsOut = 0**/;
+    int nPlatforms = 2;
+    int nEnemys = 0;
     int actualLevel = 1;
     int cabecalho = 1, startText = 1;
     int mouseX, mouseY;
@@ -58,6 +59,8 @@ int main(void){
     int initFrame = 0;
     int curMoveFrame = 0;
     int curShootFrame = 0;
+    int curCreditsFrame = 0;
+    int creditContent = 0;
     int frameCount = 0;
     int frameDelay = 7;
 
@@ -76,7 +79,7 @@ int main(void){
     platform = (SPRITE *) malloc(sizeof(SPRITE)*nPlatforms);
     enemy = (ENEMY *) malloc(sizeof(ENEMY)*nEnemys);
 
-    initializeAllegro(&janela, &fila_eventos, &timer, &font, FPS);
+    initializeAllegro(&janela, &fila_eventos, &timer, &font, &fonte, &menuSong, &menuMusic, &gameMusic, FPS);
 
     initializeMenu(&botao_start, &botao_sair, &area_central, &janela);
 
@@ -89,20 +92,9 @@ int main(void){
         return false;
     }
 
-    fonte = al_load_font("fonts/nobile.ttf", 48, 0);
-
-    menuSong = al_load_sample("songs/here-is-johnny.ogg");
-    menuMusic = al_load_sample("songs/be-good-johnny.ogg");
-    gameMusic = al_load_sample("songs/johnny-be-good.ogg");
-    if (!menuMusic || !menuSong || !gameMusic){
-        fprintf(stderr, "Falha ao carregar sample.\n");
-        al_destroy_display(janela);
-        return false;
-    }
-
     al_play_sample(menuSong, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     al_play_sample(menuMusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
-    loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
+    loadLevel(1, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
 
     if (!player.sprite.image[0]){
         fprintf(stderr, "Falha ao carregar o arquivo de imagem.\n");
@@ -134,12 +126,20 @@ int main(void){
                         teclaDown[0] = false;
                         teclaDown[1] = false;
                         teclaDown[2] = false;
-                        cabecalho = 2;
-                        startText = 2;
+                        if(actualLevel == 9){
+                            cabecalho = 1;
+                            startText = 1;
+                        }else{
+                            cabecalho = 2;
+                            startText = 2;
+                        }
                     }
                 }else{
                     if(evento.keyboard.keycode == ALLEGRO_KEY_ENTER){
                         gameStarted = true;
+                        endGame = false;
+                        creditContent = 0;
+                        curCreditsFrame = 0;
                         if(playingMenuMusic){
                             al_stop_samples();
                             playingMenuMusic = false;
@@ -148,14 +148,14 @@ int main(void){
                             al_play_sample(gameMusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
                             playingGameMusic = true;
                         }
-                        if(gameOver){
-                            player.sprite.positionY = 160;
-                            player.sprite.positionX = 10;
-                            player.sprite.rotationY = 0;
-                            player.actualHealth = player.maxHealth;
+                        if(gameOver || actualLevel == 9){
+                            initializePlayer(&player);
+                            isFalling = true;
+                            isJumping = false;
+                            isGrounded = false;
                             platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
                             enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
-                            loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                            loadLevel(1, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                             actualLevel = 1;
                             gameOver = false;
                         }
@@ -178,45 +178,51 @@ int main(void){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*5);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*2);
                         player.sprite.positionX = 0;
-                        loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(2, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 2;
                     }else if(actualLevel == 2){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*11);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
                         player.sprite.positionX = 0;
-                        loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(3, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 3;
                     }else if(actualLevel == 3){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*5);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*4);
                         player.sprite.positionX = 0;
-                        loadLevel(4, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(4, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 4;
                     }else if(actualLevel == 6){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*12);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
                         player.sprite.positionX = 0;
-                        loadLevel(5, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(5, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 5;
+                    }else if(actualLevel == 8){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*7);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*4);
+                        player.sprite.positionX = 0;
+                        loadLevel(7, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
+                        actualLevel = 7;
                     }
                 }else if(player.sprite.positionX + al_get_bitmap_width(player.sprite.image[0]) <= 0){
                     if(actualLevel == 2){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
-                        loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(1, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 1;
                     }else if(actualLevel == 3){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*5);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*2);
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
-                        loadLevel(2, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(2, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 2;
                     }else if(actualLevel == 4){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*11);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
-                        loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(3, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 3;
                     }else if(actualLevel == 5){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*3);
@@ -224,8 +230,21 @@ int main(void){
                         player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
                         isFalling = true;
                         isGrounded = false;
-                        loadLevel(6, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(6, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 6;
+                    }else if(actualLevel == 7){
+                        platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*14);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        player.sprite.positionX = getScreenWidth() - al_get_bitmap_width(player.sprite.image[0]);
+                        loadLevel(8, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
+                        actualLevel = 8;
+                    }else if(actualLevel == 8){
+                        endGame = true;
+                        actualLevel = 9;
+                        playingMenuMusic = true;
+                        playingGameMusic = false;
+                        al_stop_samples();
+                        al_play_sample(menuMusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
                     }
                 }
                 if(player.sprite.positionY + al_get_bitmap_height(player.sprite.image[0]) <= 0){
@@ -233,7 +252,7 @@ int main(void){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*12);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*3);
                         player.sprite.positionY = 514;
-                        loadLevel(5, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(5, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 5;
                     }
                 }else if(player.sprite.positionY >= getScreenHeigth()){
@@ -241,13 +260,13 @@ int main(void){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*11);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*6);
                         player.sprite.positionY = 0;
-                        loadLevel(3, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(3, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 3;
                     }else if(actualLevel == 6){
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*7);
-                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
+                        enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*4);
                         player.sprite.positionY = 0;
-                        loadLevel(7, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(7, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 7;
                     }
                 }
@@ -327,6 +346,15 @@ int main(void){
                             canShoot = true;
                         }
                     }
+                    if(endGame){
+                        if(++curCreditsFrame >= 18){
+                            curCreditsFrame = 0;
+                            creditContent++;
+                            if(creditContent > 10){
+                                creditContent = 10;
+                            }
+                        }
+                    }
                     frameCount = 0;
                 }
 
@@ -338,9 +366,6 @@ int main(void){
                     curPlayerFrame = 9;
                     isGrounded = false;
                     isJumping = false;
-                }else if(isGrounded){
-                    isJumping = false;
-                    isFalling = false;
                 }
 
                 //Colisão do PLAYER com o cenário
@@ -358,27 +383,6 @@ int main(void){
                 if(isShooting){
                     createBullet(bullet, &player.sprite, &nBullets, janela);
                     isShooting = false;
-                }
-
-                for(i = 0; i < nBullets; i++){
-                    if(bullet[i].positionX > getScreenWidth() || bullet[i].positionX < 0){
-                        bulletsOut++;
-                    }
-                }
-
-                if(nBullets > 0 && bulletsOut >= nBullets){
-                    freeMemory = true;
-                    bulletsOut = 0;
-                }else{
-                    bulletsOut = 0;
-                }
-
-                if(freeMemory || nBullets >= (sizeof(bullet)/sizeof(SPRITE))-1){
-                    for(i = 0; i < nBullets; i++){
-                        al_destroy_bitmap(bullet[i].image[0]);
-                    }
-                    nBullets = 0;
-                    freeMemory = false;
                 }
 
                 if(player.actualHealth <= 0){
@@ -402,26 +406,21 @@ int main(void){
                 mouseY = evento.mouse.y;
                 // Verificamos se ele está sobre a região do retângulo central
                 if (interactButton(botao_start, mouseX, mouseY)){
-                    al_set_target_bitmap(botao_start.image[0]);
-                    al_clear_to_color(al_map_rgb(213, 243, 255));
-                    al_set_target_bitmap(al_get_backbuffer(janela));
+                    setButtonCollor(botao_start.image[0], 213, 243, 255, janela);
                 }else{
-                    al_set_target_bitmap(botao_start.image[0]);
-                    al_clear_to_color(al_map_rgb(47, 104, 127));
-                    al_set_target_bitmap(al_get_backbuffer(janela));
+                    setButtonCollor(botao_start.image[0], 47, 104, 127, janela);
                 }
                 if (interactButton(botao_sair, mouseX, mouseY)){
-                    al_set_target_bitmap(botao_sair.image[0]);
-                    al_clear_to_color(al_map_rgb(213, 243, 255));
-                    al_set_target_bitmap(al_get_backbuffer(janela));
+                    setButtonCollor(botao_sair.image[0], 213, 243, 255, janela);
                 }else{
-                    al_set_target_bitmap(botao_sair.image[0]);
-                    al_clear_to_color(al_map_rgb(47, 104, 127));
-                    al_set_target_bitmap(al_get_backbuffer(janela));
+                    setButtonCollor(botao_sair.image[0], 47, 104, 127, janela);
                 }
             }else if(evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP){
                 if (interactButton(botao_start, mouseX, mouseY)){
                     gameStarted = true;
+                    endGame = false;
+                    creditContent = 0;
+                    curCreditsFrame = 0;
                     if(playingMenuMusic){
                         al_stop_samples();
                         playingMenuMusic = false;
@@ -430,14 +429,14 @@ int main(void){
                         al_play_sample(gameMusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
                         playingGameMusic = true;
                     }
-                    if(gameOver){
-                        player.sprite.positionY = 160;
-                        player.sprite.positionX = 10;
-                        player.sprite.rotationY = 0;
-                        player.actualHealth = player.maxHealth;
+                    if(gameOver || actualLevel == 9){
+                        initializePlayer(&player);
+                        isFalling = true;
+                        isJumping = false;
+                        isGrounded = false;
                         platform = (SPRITE *) realloc(platform, sizeof(SPRITE)*2);
                         enemy = (ENEMY *) realloc(enemy, sizeof(ENEMY)*0);
-                        loadLevel(1, platform, enemy, &nPlatforms, &nEnemys, &janela);
+                        loadLevel(1, platform, enemy, bullet, &nPlatforms, &nEnemys, &nBullets, &janela);
                         actualLevel = 1;
                         gameOver = false;
                     }
@@ -452,18 +451,20 @@ int main(void){
 
         if(redraw){
             redraw = false;
-            al_draw_bitmap(background, 0, 0, 0);
-            drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame);
+            if(!endGame){
+                al_draw_bitmap(background, 0, 0, 0);
+                drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame);
+            }else{
+                drawCredits(creditContent, font, fonte);
+            }
         }
         if(!gameStarted){
             drawMenu(botao_start, botao_sair, area_central, font, fonte, cabecalho, startText);
         }
     }
 
-    al_destroy_sample(menuSong);
-    al_destroy_sample(menuMusic);
-    al_destroy_sample(gameMusic);
-    destroy(&player.sprite, platform, enemy, bullet, &janela, &fila_eventos, &font, nBullets, nEnemys, nPlatforms);
+    destroy(&player.sprite, platform, enemy, bullet, &janela, &fila_eventos, &font, &fonte, &menuSong, &menuMusic, &gameMusic,
+            nBullets, nEnemys, nPlatforms);
 
     return 0;
 }

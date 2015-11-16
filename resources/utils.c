@@ -65,7 +65,8 @@ void moveEnemyToEnd(ENEMY *enemy, int index, int *length){
     }
 }
 
-void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos, ALLEGRO_TIMER **timer, ALLEGRO_FONT **font, int FPS){
+void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos, ALLEGRO_TIMER **timer, ALLEGRO_FONT **font,
+                       ALLEGRO_FONT **fonte, ALLEGRO_SAMPLE **menuSong, ALLEGRO_SAMPLE **menuMusic, ALLEGRO_SAMPLE **gameMusic, int FPS){
     if (!al_init()){
         fprintf(stderr, "Falha ao inicializar a Allegro.\n");
     }
@@ -113,6 +114,14 @@ void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_even
         fprintf(stderr, "Falha ao alocar canais de áudio.\n");
     }
 
+    *menuSong = al_load_sample("songs/here-is-johnny.ogg");
+    *menuMusic = al_load_sample("songs/be-good-johnny.ogg");
+    *gameMusic = al_load_sample("songs/johnny-be-good.ogg");
+    if (!menuMusic || !menuSong || !gameMusic){
+        fprintf(stderr, "Falha ao carregar sample.\n");
+        al_destroy_display(*janela);
+    }
+
     if (!al_install_keyboard())
     {
         fprintf(stderr, "Falha ao inicializar o teclado.\n");
@@ -126,7 +135,8 @@ void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_even
     }
 
     *font = al_load_font("fonts/nobile.ttf", 18, 0);
-    if (!*font)
+    *fonte = al_load_font("fonts/nobile.ttf", 48, 0);
+    if (!font || !fonte)
     {
         al_destroy_display(*janela);
         fprintf(stderr, "Falha ao carregar fonte.\n");
@@ -141,7 +151,8 @@ void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_even
 }
 
 void destroy(SPRITE *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos,
-             ALLEGRO_FONT **font, int nBullets, int nEnemys, int nPlatforms){
+             ALLEGRO_FONT **font, ALLEGRO_FONT **fonte, ALLEGRO_SAMPLE **menuSong, ALLEGRO_SAMPLE **menuMusic, ALLEGRO_SAMPLE **gameMusic,
+             int nBullets, int nEnemys, int nPlatforms){
     int i;
     for(i = 0; i < 10; i++){
         al_destroy_bitmap(player->image[i]);
@@ -156,7 +167,11 @@ void destroy(SPRITE *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALL
         al_destroy_bitmap(enemy[i].sprite.image[0]);
         al_destroy_bitmap(enemy[i].sprite.image[1]);
     }
+    al_destroy_sample(*menuSong);
+    al_destroy_sample(*menuMusic);
+    al_destroy_sample(*gameMusic);
     al_destroy_font(*font);
+    al_destroy_font(*fonte);
     al_destroy_event_queue(*fila_eventos);
     al_destroy_display(*janela);
 }
@@ -181,8 +196,13 @@ void drawScreen(PLAYER *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, 
 
     sprintf(healthIndicator, "Health: %.0f", player->actualHealth);
 
-    al_draw_text(*font, al_map_rgb(255, 255, 255), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
-
+    if(player->actualHealth >= 7){
+        al_draw_text(*font, al_map_rgb(0, 255, 0), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
+    }else if(player->actualHealth >= 4){
+        al_draw_text(*font, al_map_rgb(255, 255, 0), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
+    }else{
+        al_draw_text(*font, al_map_rgb(255, 0, 0), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
+    }
     al_flip_display();
     al_clear_to_color(al_map_rgb(0, 0, 20));
 }
@@ -253,4 +273,55 @@ bool interactButton(SPRITE button, int mouseX, int mouseY){
         return true;
     }
     return false;
+}
+
+void drawCredits(int creditContent, ALLEGRO_FONT *font, ALLEGRO_FONT *fonte){
+    char creditTitle[100];
+    char creditText[100];
+
+    if(creditContent == 0){
+        strcpy(creditTitle, "Você chegou ao fim do jogo!");
+        strcpy(creditText, "Parabéns");
+    }else if(creditContent == 1){
+        strcpy(creditTitle, "Feito por");
+        strcpy(creditText, "Júlio César F. S. de Holanda");
+    }else if(creditContent == 2){
+        strcpy(creditTitle, "Trilha sonora");
+        strcpy(creditText, "'Be Good Johnny', por Man At Work");
+    }else if(creditContent == 3){
+        strcpy(creditTitle, "Trilha sonora");
+        strcpy(creditText, "'Johnny Be Good', por Chuck Berry");
+    }else if(creditContent == 4){
+        strcpy(creditTitle, "Trilha sonora");
+        strcpy(creditText, "'Here's Johnny', áudio do filme 'O Iluminado'");
+    }else if(creditContent == 5){
+        strcpy(creditTitle, "Edição de som");
+        strcpy(creditText, "Anthony Jatobá");
+    }else if(creditContent == 6){
+        strcpy(creditTitle, "Direção de arte");
+        strcpy(creditText, "Júlio César F. S. de Holanda");
+    }else if(creditContent == 7){
+        strcpy(creditTitle, "Trabalho apresentado à disciplina de");
+        strcpy(creditText, "Programação 1");
+    }else if(creditContent == 8){
+        strcpy(creditTitle, "Professor");
+        strcpy(creditText, "Baldoíno Fonsêca");
+    }else if(creditContent == 9){
+        strcpy(creditTitle, "Obrigado");
+        strcpy(creditText, "Pela atenção!");
+    }else if(creditContent == 10){
+        strcpy(creditTitle, "Pressione 'ENTER'");
+        strcpy(creditText, "Para retornar a tela principal");
+    }
+    al_draw_text(fonte, al_map_rgb(255, 255, 255), getScreenWidth()/2, getScreenHeigth()/8, ALLEGRO_ALIGN_CENTRE, "Johnny - The Game");
+    al_draw_text(font, al_map_rgb(255, 255, 255), getScreenWidth()/2, getScreenHeigth()/2, ALLEGRO_ALIGN_CENTRE, creditTitle);
+    al_draw_text(font, al_map_rgb(255, 255, 255), getScreenWidth()/2, getScreenHeigth()-getScreenHeigth()/2.3f, ALLEGRO_ALIGN_CENTRE, creditText);
+    al_flip_display();
+    al_clear_to_color(al_map_rgb(0, 0, 20));
+}
+
+void setButtonCollor(ALLEGRO_BITMAP *button, int r, int g, int b, ALLEGRO_DISPLAY *janela){
+    al_set_target_bitmap(button);
+    al_clear_to_color(al_map_rgb(r, g, b));
+    al_set_target_bitmap(al_get_backbuffer(janela));
 }

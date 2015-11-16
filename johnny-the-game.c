@@ -350,8 +350,8 @@ int main(void){
                         if(++curCreditsFrame >= 18){
                             curCreditsFrame = 0;
                             creditContent++;
-                            if(creditContent > 10){
-                                creditContent = 10;
+                            if(creditContent > 16){
+                                creditContent = 16;
                             }
                         }
                     }
@@ -453,7 +453,7 @@ int main(void){
             redraw = false;
             if(!endGame){
                 al_draw_bitmap(background, 0, 0, 0);
-                drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame);
+                drawScreen(&player, platform, enemy, bullet, &font, nBullets, nEnemys, nPlatforms, curPlayerFrame, curEnemyFrame, actualLevel);
             }else{
                 drawCredits(creditContent, font, fonte);
             }

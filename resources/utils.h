@@ -13,7 +13,7 @@ void moveEnemyToEnd(ENEMY *enemy, int index, int *length);
 void initializeAllegro(ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos, ALLEGRO_TIMER **timer, ALLEGRO_FONT **font,
                        ALLEGRO_FONT **fonte, ALLEGRO_SAMPLE **menuSong, ALLEGRO_SAMPLE **menuMusic, ALLEGRO_SAMPLE **gameMusic, int FPS);
 void drawScreen(PLAYER *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALLEGRO_FONT **font,
-                int nBullets, int nEnemys, int nPlatforms, int curPlayerFrame, int curEnemyFrame);
+                int nBullets, int nEnemys, int nPlatforms, int curPlayerFrame, int curEnemyFrame, int actualLevel);
 void destroy(SPRITE *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALLEGRO_DISPLAY **janela, ALLEGRO_EVENT_QUEUE **fila_eventos,
              ALLEGRO_FONT **font, ALLEGRO_FONT **fonte, ALLEGRO_SAMPLE **menuSong, ALLEGRO_SAMPLE **menuMusic, ALLEGRO_SAMPLE **gameMusic,
              int nBullets, int nEnemys, int nPlatforms);

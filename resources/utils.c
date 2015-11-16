@@ -177,7 +177,7 @@ void destroy(SPRITE *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALL
 }
 
 void drawScreen(PLAYER *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, ALLEGRO_FONT **font,
-                int nBullets, int nEnemys, int nPlatforms, int curPlayerFrame, int curEnemyFrame){
+                int nBullets, int nEnemys, int nPlatforms, int curPlayerFrame, int curEnemyFrame, int actualLevel){
     int i;
     char healthIndicator[100];
 
@@ -202,6 +202,12 @@ void drawScreen(PLAYER *player, SPRITE *platform, ENEMY *enemy, SPRITE *bullet, 
         al_draw_text(*font, al_map_rgb(255, 255, 0), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
     }else{
         al_draw_text(*font, al_map_rgb(255, 0, 0), 80, 30, ALLEGRO_ALIGN_CENTRE, healthIndicator);
+    }
+
+    if(actualLevel == 1){
+        al_draw_text(*font, al_map_rgb(255, 255, 255), getScreenWidth()/2, getScreenHeigth()/2, ALLEGRO_ALIGN_CENTRE, "<--  --> para andar / 'Seta para cima' pula");
+    }else if(actualLevel == 2){
+        al_draw_text(*font, al_map_rgb(255, 255, 255), getScreenWidth()/2, getScreenHeigth()/2, ALLEGRO_ALIGN_CENTRE, "Pressione 'X' para disparar projéteis");
     }
     al_flip_display();
     al_clear_to_color(al_map_rgb(0, 0, 20));
@@ -301,15 +307,33 @@ void drawCredits(int creditContent, ALLEGRO_FONT *font, ALLEGRO_FONT *fonte){
         strcpy(creditTitle, "Direção de arte");
         strcpy(creditText, "Júlio César F. S. de Holanda");
     }else if(creditContent == 7){
+        strcpy(creditTitle, "Agradeço ao apoio de");
+        strcpy(creditText, "Myron David");
+    }else if(creditContent == 8){
+        strcpy(creditTitle, "Agradeço ao apoio de");
+        strcpy(creditText, "Anderson Fernandes");
+    }else if(creditContent == 9){
+        strcpy(creditTitle, "Agradeço ao apoio de");
+        strcpy(creditText, "João Lucas");
+    }else if(creditContent == 10){
+        strcpy(creditTitle, "Agradeço ao apoio de");
+        strcpy(creditText, "Anthony Jatobá");
+    }else if(creditContent == 11){
+        strcpy(creditTitle, "Agradeço ao apoio de");
+        strcpy(creditText, "Leandro Martins");
+    }else if(creditContent == 12){
+        strcpy(creditTitle, "Agradeço ao apoio de");
+        strcpy(creditText, "Gustavo KP");
+    }else if(creditContent == 13){
         strcpy(creditTitle, "Trabalho apresentado à disciplina de");
         strcpy(creditText, "Programação 1");
-    }else if(creditContent == 8){
+    }else if(creditContent == 14){
         strcpy(creditTitle, "Professor");
         strcpy(creditText, "Baldoíno Fonsêca");
-    }else if(creditContent == 9){
+    }else if(creditContent == 15){
         strcpy(creditTitle, "Obrigado");
         strcpy(creditText, "Pela atenção!");
-    }else if(creditContent == 10){
+    }else if(creditContent == 16){
         strcpy(creditTitle, "Pressione 'ENTER'");
         strcpy(creditText, "Para retornar a tela principal");
     }

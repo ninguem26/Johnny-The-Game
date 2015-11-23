@@ -6,31 +6,16 @@ Jogo em desenvolvimento, utilizando a linguagem C em conjunto com a biblioteca A
 
 Para compilar e executar o projeto é necessário o cumprimento de alguns requisitos. São eles, a instalação da biblioteca Allegro5 e suas dependências e a chamada da biblioteca para compilar o código.
 
-Para instalação das dependências da Allegro5, abra o terminal de sua distribuição Linux e execute os seguintes comandos:
+Para instalação das dependências da Allegro5, abra o terminal de sua distribuição Linux, navegue até a raiz da pasta com o projeto e execute o seguinte comando:
 
 ```
-$ sudo apt-get install build-essential cmake xorg-dev libgl1-mesa-dev libglu-dev
-$ sudo apt-get install libpng-dev libcurl4-dev libfreetype6-dev  libjpeg-dev libvorbis-dev libopenal-dev  libphysfs-dev libgtk2.0-dev libasound-dev
-libpulse-dev libflac-dev libdumb1-dev
+$ sudo bash compile.sh
 ```
 
-Com as dependências instaladas, acessamos a pasta allegro-5.0.10 localizada na pasta libs e compilamos o binary source com o comando:
+Esse comando executará um arquivo de script em bash que deve instalar as dependências necessárias para a execução do jogo, além de compilar a Allegro 5 e o arquivo .c do jogo. É necessário executá-lo como super usuário, para dar permissão ao download dos arquivos.
+
+Após finalizada a instalação, basta executar o jogo com o comando abaixo:
 
 ```
-$ cmake .. -DCMAKE_INSTALL_PREFIX=/usr
-```
-
-Agora é hora de compilar e instalar a biblioteca no sistema:
-
-```
-$ make
-$ sudo make install
-```
-
-Com a Allegro5 instalada, basta agora compilar o arquivo do projeto e executá-lo:
-
-```
-$ gcc -Wall johnny-the-game.c -o johnny-the-game resources/structs.h resources/utils.h resources/utils.c resources/physics.h resources/physics.c resources/player.h resources/player.c resources/enemy.h resources/enemy.c `pkg-config --cflags --libs allegro-5.0 allegro_image-5.0 allegro_font-5.0 allegro_ttf-5.0`
-
 $ ./johnny-the-game
 ```
